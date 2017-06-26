@@ -10,9 +10,12 @@ var memoryManager = {
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
 
 				if(currRemainMemory >= 0){
+					console.log("current remain memory > 0 : " + currRemainMemory);
 					memoryManager.setUserMemory(userId, currRemainMemory);
 				}
 				else{
+					console.log("current remain memory < 0 : " + currRemainMemory);
+
 					//1. 해당 유저의 index 메모리 값들 가지고 오기
 					var userContents = memoryManager.getUserIndexMemory();
 					//2. 추출되어야하는 데이터 리스트 가지고 오기
@@ -20,12 +23,17 @@ var memoryManager = {
 					extractedIndexList = memoryManager.getExtIndexList(userContents);
 					//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
 					for(var i=0; i<extractedIndexList.length; i++){
-						var removeData = function(index){
-							redisPool.dataMemory.del(extractedIndexList[index], function(err, response) {
+						var removeData = function(j){
+							console.log("delete " + j + "th element of extractedIndexList");
+							redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
 								 if (response == 1) {
-										console.log("Deleted Successfully!")
+									 	var updatedMemory;
+										updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
+										console.log("update memory " + j + "th element of extractedIndexList");
+									 	memoryManager.setUserMemory(userId, updatedMemory);
+										console.log("Deleted Successfully!");
 								 } else{
-									console.log("Cannot delete")
+									console.log("Cannot delete");
 								 }
 							})
 						}(i);
@@ -83,6 +91,7 @@ var memoryManager = {
 		var value = currMemory;
 		redisPool.socialMemory.set(key, value, function (err) {
 				if(err) console.log("fail to update the social memory in Redis");
+				console.log("now, user [" + userId + "]'s memory : " + value);
 		});
   },
 
@@ -110,7 +119,8 @@ var memoryManager = {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 
 						//3. 추출 데이터 리스트에 추가
-						extractedIndexList.push(index);
+						extractedIndexList.push({	index : index,
+																			data : result });
 
 						//4. 데이터 사이즈(length) 측정
 						value = result;
