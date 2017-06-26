@@ -115,6 +115,7 @@ var init = function() {
         //MySQL에 있는 각 지역(Newyork, Texas, Washington)의 UserId, FriendPortion에 관한 내용 Redis의 Social Memory에 올려야함.
         dbPool.getConnection(function(err, conn) {
             var query_stmt = 'SELECT * FROM ' + serverLocation;
+            console.log(query_stmt);
             conn.query(query_stmt, function(err, rows) {
                 if(err) {
                    rejected("DB err!");
