@@ -18,27 +18,33 @@ var memoryManager = {
 
 					//1. 해당 유저의 index 메모리 값들 가지고 오기
 					var userContents = memoryManager.getUserIndexMemory();
+
 					//2. 추출되어야하는 데이터 리스트 가지고 오기
 					var extractedIndexList = [];
-					extractedIndexList = memoryManager.getExtIndexList(userContents);
+					memoryManager.getExtIndexList(userContents, extractedIndexList, function(){
+
+						console.log("extractedIndexList:");
+						console.log(extractedIndexList);
+
+						//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
+						for(var i=0; i<extractedIndexList.length; i++){
+							var removeData = function(j){
+								console.log("delete " + j + "th element of extractedIndexList");
+								redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
+									 if (response == 1) {
+											var updatedMemory;
+											updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
+											console.log("update memory " + j + "th element of extractedIndexList");
+											memoryManager.setUserMemory(userId, updatedMemory);
+											console.log("Deleted Successfully!");
+									 } else{
+										console.log("Cannot delete");
+									 }
+								})
+							}(i);
+						}
+					});
 					console.log("extracted index list : " + extractedIndexList);
-					//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
-					for(var i=0; i<extractedIndexList.length; i++){
-						var removeData = function(j){
-							console.log("delete " + j + "th element of extractedIndexList");
-							redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
-								 if (response == 1) {
-									 	var updatedMemory;
-										updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-										console.log("update memory " + j + "th element of extractedIndexList");
-									 	memoryManager.setUserMemory(userId, updatedMemory);
-										console.log("Deleted Successfully!");
-								 } else{
-									console.log("Cannot delete");
-								 }
-							})
-						}(i);
-					}
 				}
 			})
 		} catch (e) {
@@ -111,7 +117,7 @@ var memoryManager = {
 	},
 
 	//추출되어야 하는 데이터 리스트
-	getExtIndexList : function(userContents){
+	getExtIndexList : function(userContents, extractedIndexList, cb){
 		for(var i=userContents.length; i>0; i--){
 			var eachContent = function (index) {
 				var key = userContents[index];
@@ -128,7 +134,8 @@ var memoryManager = {
 
 						//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
 						if(currRemainMemory + value.length > 0){
-							return extractedIndexList;
+							//return extractedIndexList;
+							cb();
 						}
 				});
 			}(i);
