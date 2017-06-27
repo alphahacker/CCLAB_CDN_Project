@@ -19,10 +19,9 @@ var memoryManager = {
 					//1. 해당 유저의 index 메모리 값들 가지고 오기
 					memoryManager.getUserIndexMemory(userId, function(userContents){
 
-
 						//2. 추출되어야하는 데이터 리스트 가지고 오기
 						var extractedIndexList = [];
-						memoryManager.getExtIndexList(userContents, extractedIndexList, function(){
+						memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
 
 							console.log("extractedIndexList:");
 							console.log(extractedIndexList);
