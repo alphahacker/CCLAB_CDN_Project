@@ -14,19 +14,31 @@ var memoryManager = {
 					memoryManager.setUserMemory(userId, currRemainMemory);
 				}
 				else{
-					console.log("current remain memory < 0 : " + currRemainMemory);
+					var promise = new Promise(function(resolved, rejected){
+						console.log("current remain memory < 0 : " + currRemainMemory);
+						//1. 해당 유저의 index 메모리 값들 가지고 오기
+						memoryManager.getUserIndexMemory(userId, function(userContents){
+							resolved(userContents);
+						});
+					});
 
-					//1. 해당 유저의 index 메모리 값들 가지고 오기
-					memoryManager.getUserIndexMemory(userId, function(userContents){
-
-						//2. 추출되어야하는 데이터 리스트 가지고 오기
-						var extractedIndexList = [];
-						memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
-
-							console.log("extractedIndexList:");
-							console.log(extractedIndexList);
-
-							//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
+					promise
+					.then(function(userContents){
+						return new Promise(function(resolved, rejected){
+							//2. 추출되어야하는 데이터 리스트 가지고 오기
+							var extractedIndexList = [];
+							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
+								console.log("extractedIndexList:");
+								console.log(extractedIndexList);
+								//rejected();
+								resolved(extractedIndexList);
+							});
+						})
+					}, function(err){
+							console.log(err);
+					})
+					.then(function(extractedIndexList){
+						return new Promise(function(resolved, rejected){
 							for(var i=0; i<extractedIndexList.length; i++){
 								var removeData = function(j){
 									console.log("delete " + j + "th element of extractedIndexList");
@@ -35,22 +47,27 @@ var memoryManager = {
 												var updatedMemory;
 												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
 												console.log("update memory " + j + "th element of extractedIndexList");
-												memoryManager.setUserMemory(userId, updatedMemory);
-												console.log("Deleted Successfully!");
+												memoryManager.setUserMemory(userId, updatedMemory, function(){
+													if(i == (extractedIndexList.length - 1)) {
+														console.log("Deleted Successfully!");
+														resolved();
+													}
+												});
+
 										 } else{
-											console.log("Cannot delete");
+											 if(i == (extractedIndexList.length - 1)) {
+												 console.log("Cannot delete");
+												 resolved();
+											 }
 										 }
 									})
 								}(i);
-							}
-						});
-						console.log("extracted index list : " + extractedIndexList);
-
-
-					});
-
-
-				}
+							} // end for
+						})
+					}, function(err){
+							console.log(err);
+					})
+				} // end else
 			})
 		} catch (e) {
 			console.log("get user memory error! : " + e);
@@ -98,12 +115,13 @@ var memoryManager = {
   },
 
 	//남아 있는 해당 사용자에게 할당된 메모리 양 업데이트
-  setUserMemory : function(userId, currMemory){
+  setUserMemory : function(userId, currMemory, cb){
 		var key = userId;
 		var value = currMemory;
 		redisPool.socialMemory.set(key, value, function (err) {
 				if(err) console.log("fail to update the social memory in Redis");
 				console.log("now, user [" + userId + "]'s memory : " + value);
+				cb();
 		});
   },
 
@@ -150,3 +168,38 @@ var memoryManager = {
 };
 
 module.exports = memoryManager;
+
+
+// 	console.log("current remain memory < 0 : " + currRemainMemory);
+//
+// 	//1. 해당 유저의 index 메모리 값들 가지고 오기
+// 	memoryManager.getUserIndexMemory(userId, function(userContents){
+//
+// 		//2. 추출되어야하는 데이터 리스트 가지고 오기
+// 		var extractedIndexList = [];
+// 		memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
+//
+// 			console.log("extractedIndexList:");
+// 			console.log(extractedIndexList);
+//
+// 			//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
+// 			for(var i=0; i<extractedIndexList.length; i++){
+// 				var removeData = function(j){
+// 					console.log("delete " + j + "th element of extractedIndexList");
+// 					redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
+// 						 if (response == 1) {
+// 								var updatedMemory;
+// 								updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
+// 								console.log("update memory " + j + "th element of extractedIndexList");
+// 								memoryManager.setUserMemory(userId, updatedMemory);
+// 								console.log("Deleted Successfully!");
+// 						 } else{
+// 							console.log("Cannot delete");
+// 						 }
+// 					})
+// 				}(i);
+// 			}
+// 		});
+// 		console.log("extracted index list : " + extractedIndexList);
+// 	});
+// }

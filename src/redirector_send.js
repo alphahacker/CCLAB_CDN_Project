@@ -46,8 +46,10 @@ var redirect = {
                   },
                   function (err, httpResponse, body) {
 										if(err) throw err;
+										// console.log(httpResponse);
+										// console.log(body);
+										console.log("redirection response : ");
 										console.log(httpResponse);
-										console.log(body);
 										return httpResponse;
                   });
               }

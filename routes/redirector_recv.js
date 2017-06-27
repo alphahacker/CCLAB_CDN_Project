@@ -138,7 +138,7 @@ router.post('/:userId', function(req, res, next) {
   //     try {
   //       redirect.send(tweetObjectList);
   //       resolved();
-  // 
+  //
   //     } catch (e) {
   //       rejected("redirect error");
   //     }
@@ -201,8 +201,9 @@ router.post('/:userId', function(req, res, next) {
 
       pushTweetInDataMemory(0, function(){
         res.json({
-          "result" : "completed"
+          "result" : "redirection completed"
         })
+        console.log("response is done");
         resolved();
       })
     })
