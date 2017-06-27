@@ -29,19 +29,20 @@ var redirect = {
 			});
       */
 
-      var formData = {
-         user_id: tweetObject.userId,
-         content_id: tweetObject.contentId,
-         content: tweetObject.content
-      };
-
+    //  var formData = {
+    //     user_id: tweetObject.userId,
+    //     content_id: tweetObject.contentId,
+    //     content: tweetObject.content
+    //  };
       for(var i=0; i<ipList.length; i++){
-          function deliverData (index){
-              if(ipList[index] == thisServerIp){
+          var deliverData = function(index){
+							console.log("ipList["+index+"] : " + ipList[index]);
+              if(ipList[index] != thisServerIp){
+									console.log("redirect target ip : " + ipList[index]);
                   request.post({
-                      url: ipList[index],
+                      url: 'http://' + ipList[index] + '/redirector/' + tweetObject.user_id,
                   //    url: 'https://todoist.com/oauth/access_token',
-                      form: formData
+                      form: {contentData : tweetObject.contentData}
                   },
                   function (err, httpResponse, body) {
 										if(err) throw err;

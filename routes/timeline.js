@@ -162,7 +162,6 @@ router.post('/:userId', function(req, res, next) {
   //3-2. origin server에 있는 mysql의 timeline에, 모든 친구들에 대해서 데이터를 넣는다.
   .then(function(){
     return new Promise(function(resolved, rejected){
-      console.log(tweetObjectList);
       pushIndexInOriginDB = function(i, callback){
         if(i >= tweetObjectList.length){
           callback();
@@ -194,7 +193,8 @@ router.post('/:userId', function(req, res, next) {
   .then(function(){
     return new Promise(function(resolved, rejected){
       try {
-        redirect.send(tweetObjectList);
+        redirect.send({ user_id : req.params.userId,
+                        contentData : req.body.contentData });
         resolved();
 
       } catch (e) {

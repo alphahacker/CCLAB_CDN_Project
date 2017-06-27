@@ -21,6 +21,7 @@ var memoryManager = {
 					//2. 추출되어야하는 데이터 리스트 가지고 오기
 					var extractedIndexList = [];
 					extractedIndexList = memoryManager.getExtIndexList(userContents);
+					console.log("extracted index list : " + extractedIndexList);
 					//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
 					for(var i=0; i<extractedIndexList.length; i++){
 						var removeData = function(j){
