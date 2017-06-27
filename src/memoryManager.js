@@ -17,7 +17,7 @@ var memoryManager = {
 					console.log("current remain memory < 0 : " + currRemainMemory);
 
 					//1. 해당 유저의 index 메모리 값들 가지고 오기
-					var userContents = memoryManager.getUserIndexMemory(userId, function(){
+					memoryManager.getUserIndexMemory(userId, function(userContents){
 
 
 						//2. 추출되어야하는 데이터 리스트 가지고 오기
@@ -118,7 +118,7 @@ var memoryManager = {
 		redisPool.indexMemory.lrange(key, start, end, function (err, result) {
 				if(err) console.log("fail to get the user index memory contents in redis!");
 				contentList = result;
-				cb();
+				cb(contentList);
 		});
 		//return contentList;
 	},
