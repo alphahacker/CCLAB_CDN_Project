@@ -5,7 +5,6 @@ var count = 0;
 
 var util = {
   serverIp : function (cb) {
-
     console.log("addr test 2 : " + ip.address());
     return ip.address();
 
@@ -43,7 +42,7 @@ var util = {
     if(thisServerIp == '192.168.0.27') {
         serverLocation = 'newyork';
     }
-    else if (thisServerIp == '165.132.104.193') {
+    else if (thisServerIp == '165.132.104.208') {
         serverLocation = 'texas';
     }
     else {
