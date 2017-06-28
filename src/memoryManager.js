@@ -178,6 +178,7 @@ var memoryManager = {
 							if(currRemainMemory + result.length > 0){
 								//return extractedIndexList;
 								cb();
+								i = -1;
 								return false;
 							}
 						}
