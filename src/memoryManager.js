@@ -27,6 +27,8 @@ var memoryManager = {
 						return new Promise(function(resolved, rejected){
 							//2. 추출되어야하는 데이터 리스트 가지고 오기
 							var extractedIndexList = [];
+							console.log("userContents:");
+							console.log(userContents);
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
 								console.log("extractedIndexList:");
 								console.log(extractedIndexList);
@@ -144,6 +146,7 @@ var memoryManager = {
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
 		for(var i=userContents.length; i>0; i--){
 			var eachContent = function (index) {
+				console.log("index : " + index);
 				var key = userContents[index];
 				var value;
 				redisPool.dataMemory.get(key, function (err, result) {
