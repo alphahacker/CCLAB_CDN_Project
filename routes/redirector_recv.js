@@ -40,113 +40,15 @@ var util = require('../src/util.js');
 router.post('/:userId', function(req, res, next) {
 
   var tweetObjectList = [];
+  tweetObjectList = req.body.tweetObjectList;
 
   //2. 친구들 리스트 뽑아서
   var promise = new Promise(function(resolved, rejected){
-      var friendList = [];
-      dbPool.getConnection(function(err, conn) {
-          var query_stmt = 'SELECT friendId FROM friendList WHERE userId = "' + req.params.userId + '"';
-          conn.query(query_stmt, function(err, rows) {
-              if(err) {
-                 rejected("fail to extract friend id list from origin server!");
-              }
-              for (var i=0; i<rows.length; i++) {
-                  friendList.push(rows[i].friendId);
-              }
-              conn.release(); //MySQL connection release
-              resolved(friendList);
-          })
-      });
+    resolved();
   });
 
   //3-1. origin server에 있는 mysql의 content에 모든 친구들에 대해서 데이터를 넣는다. 이 때, lastInsertId를 이용해서 contentId를 만듦.
   promise
-  .then(function(friendList){
-    return new Promise(function(resolved, rejected){
-      pushTweetInOriginDB = function(i, callback){
-        if(i >= friendList.length){
-          callback();
-        } else {
-          dbPool.getConnection(function(err, conn) {
-              var query_stmt = 'INSERT INTO content (uid, message) SELECT id, "' + req.body.contentData
-                            + '" FROM user WHERE userId = "' + friendList[i] + '"';
-              conn.query(query_stmt, function(err, result) {
-                  if(err) {
-                     rejected("DB err!");
-                  }
-
-                  conn.release(); //MySQL connection release
-
-                  var tweetObject = {
-                    // userId : req.params.userId,
-                    // contentId : util.getContentId(),
-                    // content : req.body.contentData
-                  };
-                  tweetObject.userId = friendList[i];
-                  tweetObject.contentId = Number(result.insertId);
-                  tweetObject.content = req.body.contentData;
-                  tweetObjectList.push(tweetObject);
-
-                  pushTweetInOriginDB(i+1, callback);
-              })
-          });
-        }
-      }
-
-      pushTweetInOriginDB(0, function(){
-        resolved();
-      })
-    })
-  }, function(err){
-      console.log(err);
-  })
-
-  //3-2. origin server에 있는 mysql의 timeline에, 모든 친구들에 대해서 데이터를 넣는다.
-  .then(function(){
-    return new Promise(function(resolved, rejected){
-      console.log(tweetObjectList);
-      pushIndexInOriginDB = function(i, callback){
-        if(i >= tweetObjectList.length){
-          callback();
-        } else {
-          dbPool.getConnection(function(err, conn) {
-              var query_stmt = 'INSERT INTO timeline (uid, contentId) SELECT id, ' + tweetObjectList[i].contentId
-                            + ' FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
-              conn.query(query_stmt, function(err, result) {
-                  if(err) {
-                     rejected("DB err!");
-                  }
-
-                  conn.release(); //MySQL connection release
-                  pushIndexInOriginDB(i+1, callback);
-              })
-          });
-        }
-      }
-
-      pushIndexInOriginDB(0, function(){
-        resolved();
-      })
-    })
-  }, function(err){
-      console.log(err);
-  })
-
-  // //4. 다른 surrogate 서버로 redirect
-  // .then(function(){
-  //   return new Promise(function(resolved, rejected){
-  //     try {
-  //       redirect.send(tweetObjectList);
-  //       resolved();
-  //
-  //     } catch (e) {
-  //       rejected("redirect error");
-  //     }
-  //   })
-  // }, function(err){
-  //     console.log(err);
-  // })
-
   //5. tweetObjectList를 이용해서, 각 surrogate 서버 index 메모리에, 모든 친구들에 대해서 넣는다.
   .then(function(){
     return new Promise(function(resolved, rejected){
