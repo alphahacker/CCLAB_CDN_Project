@@ -135,11 +135,7 @@ router.post('/:userId', function(req, res, next) {
 
                   conn.release(); //MySQL connection release
 
-                  var tweetObject = {
-                    // userId : req.params.userId,
-                    // contentId : util.getContentId(),
-                    // content : req.body.contentData
-                  };
+                  var tweetObject = {};
                   tweetObject.userId = friendList[i];
                   tweetObject.contentId = Number(result.insertId);
                   tweetObject.content = req.body.contentData;
