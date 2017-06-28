@@ -163,18 +163,20 @@ var memoryManager = {
 						}
 						else {
 							//3. 추출 데이터 리스트에 추가
-							extractedIndexList.push({	index : key,
-																				data : result });
 							updatedMemory = updatedMemory + result.length;
-							//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
 							if(updatedMemory >= 0){
 								if(!breakFlag) {
+									extractedIndexList.push({	index : key,
+																						data : result });
 									cb();
 									breakFlag = true;
 								}
-
-								return false;
 							}
+							else {
+								extractedIndexList.push({	index : key,
+																					data : result });
+							}
+
 						}
 				});
 			}(i);
