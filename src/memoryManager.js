@@ -7,6 +7,7 @@ var memoryManager = {
 	checkMemory : function(dataSize, userId) {
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
+				console.log("!!!! user : " + userId);
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
 
 				if(currRemainMemory >= 0){
