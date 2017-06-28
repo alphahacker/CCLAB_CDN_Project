@@ -4,7 +4,7 @@ var util = require('../src/util.js');
 var config = require('./configs.js');
 
 var redirect = {
-	send : function(tweetObject) {
+	send : function(tweetObjectList) {
 
     //여기서 하나 뺴고, 자기의 IP빼고 다른 IP들이 어떤건지 추출해야함.
     var ipList = config.ipList;
@@ -42,7 +42,7 @@ var redirect = {
                   request.post({
                       url: 'http://' + ipList[index] + '/redirector/' + tweetObject.user_id,
                   //    url: 'https://todoist.com/oauth/access_token',
-                      form: {contentData : tweetObject.contentData}
+                      form: { objectList : tweetObjectList }
                   },
                   function (err, httpResponse, body) {
 										if(err) throw err;
