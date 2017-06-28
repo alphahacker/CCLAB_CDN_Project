@@ -37,12 +37,12 @@ var util = require('../src/util.js');
 
 
 //Receive redirected data from another surrogate server.
-router.post('/:userId', function(req, res, next) {
+router.post('/', function(req, res, next) {
 
   var tweetObjectList = [];
-  console.log("req.body.objectList : ");
-  console.log(req.body.objectList);
-  tweetObjectList = req.body.objectList;
+  console.log("req.body.contentList : ");
+  console.log(req.body.contentList);
+  tweetObjectList = req.body.contentList;
 
   //2. 친구들 리스트 뽑아서
   var promise = new Promise(function(resolved, rejected){

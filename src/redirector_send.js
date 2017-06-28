@@ -34,15 +34,17 @@ var redirect = {
     //     content_id: tweetObject.contentId,
     //     content: tweetObject.content
     //  };
+		console.log("tweetObjectList = ");
+		console.log(tweetObjectList);
       for(var i=0; i<ipList.length; i++){
           var deliverData = function(index){
 							console.log("ipList["+index+"] : " + ipList[index]);
               if(ipList[index] != thisServerIp){
 									console.log("redirect target ip : " + ipList[index]);
                   request.post({
-                      url: 'http://' + ipList[index] + '/redirector/' + tweetObject.user_id,
+                      url: 'http://' + ipList[index] + '/redirector',
                   //    url: 'https://todoist.com/oauth/access_token',
-                      form: { objectList : tweetObjectList }
+                      form: { contentList : tweetObjectList }
                   },
                   function (err, httpResponse, body) {
 										if(err) throw err;
