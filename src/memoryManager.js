@@ -4,7 +4,7 @@ var util = require('./util.js');
 var config = require('./configs.js');
 
 var memoryManager = {
-	checkMemory : function(dataSize, userId) {
+	checkMemory : function(dataSize, userId, memoryCheckCallBack) {
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
 				console.log("!!!! user : " + userId);
@@ -12,7 +12,9 @@ var memoryManager = {
 
 				if(currRemainMemory >= 0){
 					console.log("current remain memory > 0 : " + currRemainMemory);
-					memoryManager.setUserMemory(userId, currRemainMemory, function(){});
+					memoryManager.setUserMemory(userId, currRemainMemory, function(){
+						memoryCheckCallBack(currRemainMemory);
+					});
 				}
 				else{
 					var promise = new Promise(function(resolved, rejected){
@@ -53,6 +55,7 @@ var memoryManager = {
 												memoryManager.setUserMemory(userId, updatedMemory, function(){
 													if(i == (extractedIndexList.length - 1)) {
 														console.log("Deleted Successfully!");
+														memoryCheckCallBack(updatedMemory);
 														resolved();
 													}
 												});
@@ -60,6 +63,7 @@ var memoryManager = {
 										 } else{
 											 if(i == (extractedIndexList.length - 1)) {
 												 console.log("Cannot delete");
+												 memoryCheckCallBack(currRemainMemory);
 												 resolved();
 											 }
 										 }
