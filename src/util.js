@@ -39,7 +39,7 @@ var util = {
     var serverLocation;
     var thisServerIp = util.serverIp();
     console.log("this server ip : " + thisServerIp);
-    if(thisServerIp == '192.168.0.8') {
+    if(thisServerIp == '192.168.0.27') {
         serverLocation = 'newyork';
     }
     else if (thisServerIp == '165.132.104.208') {
