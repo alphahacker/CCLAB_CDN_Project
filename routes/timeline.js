@@ -247,6 +247,7 @@ router.post('/:userId', function(req, res, next) {
           */
           memoryManager.checkMemory(tweetObjectList[i]);
           //memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);
+          console.log("i = " + i);
           pushTweetInDataMemory(i+1, callback);
           // memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId, function(expectedRemainMemory){ //파라미터로 데이터의 사이즈와 사용자의 ID를 넣어야함.
           //   if(expectedRemainMemory >= 0){
