@@ -166,7 +166,6 @@ var memoryManager = {
 				redisPool.dataMemory.get(key, function (err, result) {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
-							//cb();
 							return false;
 						}
 						else {
@@ -177,6 +176,7 @@ var memoryManager = {
 							//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
 							if(currRemainMemory + result.length > 0){
 								//return extractedIndexList;
+								console.log("here----------------------------------------------");
 								cb();
 								i = -1;
 								return false;
