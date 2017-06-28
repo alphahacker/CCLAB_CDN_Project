@@ -53,28 +53,18 @@ var memoryManager = {
 									redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
 										if(err)	{ console.log("delete data error! "); rejected("delete data error!! "); }
 										else {
-											//if (response == 1) {
-													var updatedMemory;
-													updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-													console.log("update memory " + j + "th element of extractedIndexList");
-													console.log("updatedMemory = " + updatedMemory);
-													console.log("user id = " + userId);
-													memoryManager.setUserMemory(userId, updatedMemory, function(){
-														if(j == (extractedIndexList.length - 1)) {
-															console.log("Deleted Successfully!");
-															memoryManager.setDataInMemory(tweetObject, updatedMemory);
-															resolved();
-														}
-													});
-
-											//}
-											//  else{
-											// 	 if(i == (extractedIndexList.length - 1)) {
-											// 		 console.log("Cannot delete");
-											// 		 memoryManager.setDataInMemory(tweetObject, currRemainMemory);
-											// 		 resolved();
-											// 	 }
-											//  }
+												var updatedMemory;
+												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
+												console.log("update memory " + j + "th element of extractedIndexList");
+												console.log("updatedMemory = " + updatedMemory);
+												console.log("user id = " + userId);
+												memoryManager.setUserMemory(userId, updatedMemory, function(){
+													if(j == (extractedIndexList.length - 1)) {
+														console.log("Deleted Successfully!");
+														memoryManager.setDataInMemory(tweetObject, updatedMemory);
+														resolved();
+													}
+												});
 										}
 									})
 								}(i);
@@ -159,12 +149,11 @@ var memoryManager = {
 	//추출되어야 하는 데이터 리스트
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
 		console.log("userContents.length = " + userContents.length);
+		var updatedMemory = currRemainMemory;
+		var breakFlag = false;
 		for(var i=userContents.length-1; i>=0; i--){
 			var eachContent = function (index) {
-				console.log("index = " + index);
-				//console.log("index : " + index);
 				var key = userContents[index];
-				//console.log("key : " + key);
 				redisPool.dataMemory.get(key, function (err, result) {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
@@ -174,13 +163,14 @@ var memoryManager = {
 							//3. 추출 데이터 리스트에 추가
 							extractedIndexList.push({	index : key,
 																				data : result });
-
+							updatedMemory = updatedMemory + result.length;
 							//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
-							if(currRemainMemory + result.length > 0){
-								//return extractedIndexList;
-								console.log("here----------------------------------------------");
-								cb();
-								i = -1;
+							if(updatedMemory >= 0){
+								if(!breakFlag) {
+									cb();
+									breakFlag = true;
+								}
+
 								return false;
 							}
 						}
