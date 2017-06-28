@@ -60,7 +60,7 @@ var memoryManager = {
 													console.log("updatedMemory = " + updatedMemory);
 													console.log("user id = " + userId);
 													memoryManager.setUserMemory(userId, updatedMemory, function(){
-														if(i == (extractedIndexList.length - 1)) {
+														if(j == (extractedIndexList.length - 1)) {
 															console.log("Deleted Successfully!");
 															memoryManager.setDataInMemory(tweetObject, updatedMemory);
 															resolved();
