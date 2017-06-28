@@ -4,7 +4,9 @@ var util = require('./util.js');
 var config = require('./configs.js');
 
 var memoryManager = {
-	checkMemory : function(dataSize, userId, memoryCheckCallBack) {
+	checkMemory : function(tweetObject) {
+		var dataSize = tweetObject.content.length;
+		var userId = tweetObject.userId;
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
 				console.log("!!!! user : " + userId);
@@ -13,7 +15,7 @@ var memoryManager = {
 				if(currRemainMemory >= 0){
 					console.log("current remain memory > 0 : " + currRemainMemory);
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
-						memoryCheckCallBack(currRemainMemory);
+						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
 				}
 				else{
@@ -55,7 +57,7 @@ var memoryManager = {
 												memoryManager.setUserMemory(userId, updatedMemory, function(){
 													if(i == (extractedIndexList.length - 1)) {
 														console.log("Deleted Successfully!");
-														memoryCheckCallBack(updatedMemory);
+														memoryManager.setDataInMemory(tweetObject, updatedMemory);
 														resolved();
 													}
 												});
@@ -63,7 +65,7 @@ var memoryManager = {
 										 } else{
 											 if(i == (extractedIndexList.length - 1)) {
 												 console.log("Cannot delete");
-												 memoryCheckCallBack(currRemainMemory);
+												 memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 												 resolved();
 											 }
 										 }
@@ -175,7 +177,17 @@ var memoryManager = {
 				});
 			}(i);
 		}
-	}
+	},
+
+	setDataInMemory : function(tweetObject, expectedRemainMemory) {
+		 if(expectedRemainMemory >= 0){
+			 var key = tweetObject.contentId;
+			 var value = tweetObject.content;
+			 redisPool.dataMemory.set(key, value, function (err) {
+					 if(err) rejected("fail to push the content into friend's data memory in Redis");
+			 });
+		 }
+	 }
 };
 
 module.exports = memoryManager;
