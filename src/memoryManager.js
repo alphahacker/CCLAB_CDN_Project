@@ -49,26 +49,31 @@ var memoryManager = {
 							for(var i=0; i<extractedIndexList.length; i++){
 								var removeData = function(j){
 									console.log("delete " + j + "th element of extractedIndexList");
+									console.log("extractedIndexList["+j+"].index = " + extractedIndexList[j].index);
 									redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
-										 if (response == 1) {
-												var updatedMemory;
-												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-												console.log("update memory " + j + "th element of extractedIndexList");
-												memoryManager.setUserMemory(userId, updatedMemory, function(){
-													if(i == (extractedIndexList.length - 1)) {
-														console.log("Deleted Successfully!");
-														memoryManager.setDataInMemory(tweetObject, updatedMemory);
-														resolved();
-													}
-												});
+										if(err)	{ console.log("delete data error! "); rejected("delete data error!! "); }
+										else {
+											//if (response == 1) {
+													var updatedMemory;
+													updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
+													console.log("update memory " + j + "th element of extractedIndexList");
+													memoryManager.setUserMemory(userId, updatedMemory, function(){
+														if(i == (extractedIndexList.length - 1)) {
+															console.log("Deleted Successfully!");
+															memoryManager.setDataInMemory(tweetObject, updatedMemory);
+															resolved();
+														}
+													});
 
-										 } else{
-											 if(i == (extractedIndexList.length - 1)) {
-												 console.log("Cannot delete");
-												 memoryManager.setDataInMemory(tweetObject, currRemainMemory);
-												 resolved();
-											 }
-										 }
+											//}
+											//  else{
+											// 	 if(i == (extractedIndexList.length - 1)) {
+											// 		 console.log("Cannot delete");
+											// 		 memoryManager.setDataInMemory(tweetObject, currRemainMemory);
+											// 		 resolved();
+											// 	 }
+											//  }
+										}
 									})
 								}(i);
 							} // end for
