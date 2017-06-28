@@ -121,6 +121,7 @@ router.post('/:userId', function(req, res, next) {
   promise
   .then(function(friendList){
     return new Promise(function(resolved, rejected){
+      console.log("FL length = "+friendList);
       pushTweetInOriginDB = function(i, callback){
         if(i >= friendList.length){
           callback();
