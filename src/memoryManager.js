@@ -11,7 +11,7 @@ var memoryManager = {
 
 				if(currRemainMemory >= 0){
 					console.log("current remain memory > 0 : " + currRemainMemory);
-					memoryManager.setUserMemory(userId, currRemainMemory);
+					memoryManager.setUserMemory(userId, currRemainMemory, function(){});
 				}
 				else{
 					var promise = new Promise(function(resolved, rejected){
