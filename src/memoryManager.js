@@ -158,11 +158,13 @@ var memoryManager = {
 
 	//추출되어야 하는 데이터 리스트
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
+		console.log("userContents.length = " + userContents.length);
 		for(var i=userContents.length-1; i>=0; i--){
+			console.log("i = " + i);
 			var eachContent = function (index) {
-				console.log("index : " + index);
+				//console.log("index : " + index);
 				var key = userContents[index];
-				console.log("key : " + key);
+				//console.log("key : " + key);
 				redisPool.dataMemory.get(key, function (err, result) {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
