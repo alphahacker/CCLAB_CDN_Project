@@ -235,6 +235,7 @@ router.post('/:userId', function(req, res, next) {
   .then(function(){
     return new Promise(function(resolved, rejected){
       pushTweetInDataMemory = function(i, callback){
+        console.log("length = " + tweetObjectList.length);
         if(i >= tweetObjectList.length){
           callback();
         } else {
@@ -245,6 +246,7 @@ router.post('/:userId', function(req, res, next) {
             따라서 아래의 메모리 체크 함수 (checkMemory)는 우리가 제안하는 방식에서만 필요하고, baseline approach에서는 필요 없다.
             baseline approach에서는 그냥, 가만히 놔두면 redis설정에 따라 오래된 애들을 우선적으로 지울듯. lru에 따라.
           */
+          console.log('here');
           memoryManager.checkMemory(tweetObjectList[i]);
           //memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);
           console.log("i = " + i);
