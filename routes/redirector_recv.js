@@ -187,15 +187,18 @@ router.post('/:userId', function(req, res, next) {
             따라서 아래의 메모리 체크 함수 (checkMemory)는 우리가 제안하는 방식에서만 필요하고, baseline approach에서는 필요 없다.
             baseline approach에서는 그냥, 가만히 놔두면 redis설정에 따라 오래된 애들을 우선적으로 지울듯. lru에 따라.
           */
-          memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);  //파라미터로 데이터의 사이즈와 사용자의 ID를 넣어야함.
+          memoryManager.checkMemory(tweetObjectList[i]);
+          pushTweetInDataMemory(i+1, callback);
 
-          var key = tweetObjectList[i].contentId;
-          var value = tweetObjectList[i].content;
-
-          redisPool.dataMemory.set(key, value, function (err) {
-              if(err) rejected("fail to push the content into friend's data memory in Redis");
-              pushTweetInDataMemory(i+1, callback);
-          });
+          // memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);  //파라미터로 데이터의 사이즈와 사용자의 ID를 넣어야함.
+          //
+          // var key = tweetObjectList[i].contentId;
+          // var value = tweetObjectList[i].content;
+          //
+          // redisPool.dataMemory.set(key, value, function (err) {
+          //     if(err) rejected("fail to push the content into friend's data memory in Redis");
+          //     pushTweetInDataMemory(i+1, callback);
+          // });
         }
       }
 
