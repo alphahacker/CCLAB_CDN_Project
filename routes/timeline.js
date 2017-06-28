@@ -193,8 +193,7 @@ router.post('/:userId', function(req, res, next) {
   .then(function(){
     return new Promise(function(resolved, rejected){
       try {
-        tweetObjectList
-        redirect.send({ tweetObjectList : tweetObjectList });
+        redirect.send({ objectList : tweetObjectList });
         // redirect.send({ user_id : req.params.userId,
         //                 contentData : req.body.contentData });
         resolved();

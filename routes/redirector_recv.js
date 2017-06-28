@@ -40,7 +40,9 @@ var util = require('../src/util.js');
 router.post('/:userId', function(req, res, next) {
 
   var tweetObjectList = [];
-  tweetObjectList = req.body.tweetObjectList;
+  console.log("req.body.objectList : ");
+  console.log(req.body.objectList);
+  tweetObjectList = req.body.objectList;
 
   //2. 친구들 리스트 뽑아서
   var promise = new Promise(function(resolved, rejected){
