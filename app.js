@@ -23,14 +23,6 @@ var config = require('./src/configs.js');
 
 //----------------------------------------------------------------//
 
-var routes = require('./routes/index');
-var login = require('./routes/login');
-var preschool = require('./routes/preschool');
-var parents = require('./routes/parents');
-var teachers = require('./routes/teachers');
-var busses = require('./routes/bus');
-var classes = require('./routes/class');
-var images = require('./routes/images');
 var redis = require('./routes/redis');
 var redirector = require('./routes/redirector_recv');
 var timeline = require('./routes/timeline');
@@ -52,13 +44,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 //app.use('/users', users);
-app.use('/login', login);
-app.use('/preschools', preschool);
-app.use('/parents', parents);
-app.use('/busses', busses);
-app.use('/teachers', teachers);
-app.use('/classes', classes);
-app.use('/images', images);
 app.use('/redis', redis);
 app.use('/redirector', redirector);
 app.use('/timeline', timeline);
