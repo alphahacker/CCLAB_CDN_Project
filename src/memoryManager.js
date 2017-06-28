@@ -148,6 +148,9 @@ var memoryManager = {
 				var value;
 				redisPool.dataMemory.get(key, function (err, result) {
 						if(err) console.log("fail to push the content from data memory in redis! ");
+						if(result == undefined || result == null){
+							cb();
+						}
 
 						//3. 추출 데이터 리스트에 추가
 						extractedIndexList.push({	index : index,
