@@ -150,7 +150,7 @@ var memoryManager = {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
 							cb();
-							break;
+							console.log("test here1");
 						}
 
 						//3. 추출 데이터 리스트에 추가
@@ -164,7 +164,7 @@ var memoryManager = {
 						if(currRemainMemory + value.length > 0){
 							//return extractedIndexList;
 							cb();
-							break;
+							console.log("test here2");
 						}
 				});
 			}(i);
