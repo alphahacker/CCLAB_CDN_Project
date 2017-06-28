@@ -57,6 +57,8 @@ var memoryManager = {
 													var updatedMemory;
 													updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
 													console.log("update memory " + j + "th element of extractedIndexList");
+													console.log("updatedMemory = " + updatedMemory);
+													console.log("user id = " + userId);
 													memoryManager.setUserMemory(userId, updatedMemory, function(){
 														if(i == (extractedIndexList.length - 1)) {
 															console.log("Deleted Successfully!");
