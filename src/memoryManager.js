@@ -153,21 +153,24 @@ var memoryManager = {
 						if(err) console.log("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
 							cb();
+							return false;
 							console.log("test here1");
 						}
+						else {
+							//3. 추출 데이터 리스트에 추가
+							extractedIndexList.push({	index : index,
+																				data : result });
 
-						//3. 추출 데이터 리스트에 추가
-						extractedIndexList.push({	index : index,
-																			data : result });
+							//4. 데이터 사이즈(length) 측정
+							value = result;
 
-						//4. 데이터 사이즈(length) 측정
-						value = result;
-
-						//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
-						if(currRemainMemory + value.length > 0){
-							//return extractedIndexList;
-							cb();
-							console.log("test here2");
+							//5. 해당 사이즈를 메모리에 뺏을때 남는 메모리가 0보다 크면, break
+							if(currRemainMemory + value.length > 0){
+								//return extractedIndexList;
+								cb();
+								return false;
+								console.log("test here2");
+							}
 						}
 				});
 			}(i);
