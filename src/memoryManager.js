@@ -36,6 +36,7 @@ var memoryManager = {
 							console.log(userContents);
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
 								console.log("extractedIndexList ["+userId+"]:");
+								console.log("length1:"+extractedIndexList.length);
 								console.log(extractedIndexList);
 								//rejected();
 								resolved(extractedIndexList);
@@ -46,6 +47,7 @@ var memoryManager = {
 					})
 					.then(function(extractedIndexList){
 						return new Promise(function(resolved, rejected){
+							console.log("length2:"+extractedIndexList.length);
 							for(var i=0; i<extractedIndexList.length; i++){
 								var removeData = function(j){
 									console.log("delete " + j + "th element of extractedIndexList");
