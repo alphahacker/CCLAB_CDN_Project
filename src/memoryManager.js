@@ -141,7 +141,7 @@ var memoryManager = {
 	},
 
 	//추출되어야 하는 데이터 리스트
-	getExtIndexList : function(userContents, extractedIndexList, cb){
+	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
 		for(var i=userContents.length; i>0; i--){
 			var eachContent = function (index) {
 				var key = userContents[index];
