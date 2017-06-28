@@ -32,7 +32,7 @@ var memoryManager = {
 						return new Promise(function(resolved, rejected){
 							//2. 추출되어야하는 데이터 리스트 가지고 오기
 							var extractedIndexList = [];
-							console.log("userContents:");
+							console.log("userContents["+userId+"]:");
 							console.log(userContents);
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
 								console.log("extractedIndexList ["+userId+"]:");
@@ -160,8 +160,8 @@ var memoryManager = {
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
 		console.log("userContents.length = " + userContents.length);
 		for(var i=userContents.length-1; i>=0; i--){
-			console.log("i = " + i);
 			var eachContent = function (index) {
+				console.log("index = " + index);
 				//console.log("index : " + index);
 				var key = userContents[index];
 				//console.log("key : " + key);
