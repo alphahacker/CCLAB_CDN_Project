@@ -4,6 +4,11 @@ var bodyParser = require('body-parser');
 var redis = require('redis');
 var JSON = require('JSON');
 
+var log4js = require('log4js');
+log4js.configure('./configure/log4js.json');
+var operation_log = log4js.getLogger("operation");
+var error_log = log4js.getLogger("error");
+
 var dbPool = require('../src/db.js');
 var redisPool = require('../src/caching.js');
 var redirect = require('../src/redirector_send.js');
@@ -62,8 +67,10 @@ router.get('/:userId', function(req, res, next) {
                       if(result){
                         contentDataList.push(result[0].message);
                         console.log("cache miss!");
+                        operation_log.info("Operation_log Test");
                       } else {
                         console.log("there's no data, even in the origin mysql server!");
+                        error_log.error("Error_log Test");
                       }
 
                       conn.release(); //MySQL connection release
@@ -122,7 +129,6 @@ router.post('/:userId', function(req, res, next) {
   promise
   .then(function(friendList){
     return new Promise(function(resolved, rejected){
-      console.log("FL length = " + friendList.length);
       pushTweetInOriginDB = function(i, callback){
         if(i >= friendList.length){
           callback();

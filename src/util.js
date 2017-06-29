@@ -45,6 +45,9 @@ var util = {
     else if (thisServerIp == '165.132.104.208') {
         serverLocation = 'texas';
     }
+    else if (thisServerIp == '165.132.104.209') {
+        serverLocation = 'washington';
+    }
     else {
         console.log("Wrong access IP!");
     }

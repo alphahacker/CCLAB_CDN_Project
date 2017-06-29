@@ -3,6 +3,11 @@ var redisPool = require('../src/caching.js');
 var util = require('./util.js');
 var config = require('./configs.js');
 
+var log4js = require('log4js');
+log4js.configure('./configure/log4js.json');
+var operation_log = log4js.getLogger("operation");
+var error_log = log4js.getLogger("error");
+
 var memoryManager = {
 	checkMemory : function(tweetObject) {
 		var dataSize = tweetObject.content.length;
@@ -14,6 +19,7 @@ var memoryManager = {
 
 				if(currRemainMemory >= 0){
 					console.log("current remain memory > 0 : " + currRemainMemory);
+					operation_log.info("Operation_log Test - in memoryManager");
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
 						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
