@@ -14,6 +14,7 @@ var redisPool = require('../src/caching.js');
 var redirect = require('../src/redirector_send.js');
 var memoryManager = require('../src/memoryManager.js');
 var util = require('../src/util.js');
+var monitoring = require('../src/monitoring.js');
 
 var app = express();
 
@@ -57,7 +58,10 @@ router.get('/:userId', function(req, res, next) {
               if(result){
                 contentDataList.push(result);
                 console.log("cache hit!");
+                monitoring.cacheHit++;
+                operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
                 getUserContentData(i+1, callback);
+
               } else {
                 dbPool.getConnection(function(err, conn) {
                   var query_stmt = 'SELECT message FROM content ' +
@@ -67,7 +71,9 @@ router.get('/:userId', function(req, res, next) {
                       if(result){
                         contentDataList.push(result[0].message);
                         console.log("cache miss!");
-                        operation_log.info("Operation_log Test");
+                        monitoring.cacheMiss++;
+                        operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
+
                       } else {
                         console.log("there's no data, even in the origin mysql server!");
                         error_log.error("Error_log Test");

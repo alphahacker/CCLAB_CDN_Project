@@ -20,6 +20,7 @@ var dbPool = require('./src/db.js');
 var redisPool = require('./src/caching.js');
 var util = require('./src/util.js');
 var config = require('./src/configs.js');
+var monitoring = require('./src/monitoring.js');
 
 //----------------------------------------------------------------//
 
@@ -51,6 +52,12 @@ app.use('/timeline', timeline);
 //----------------------------------------------------------------//
 
 var init = function() {
+
+    //monitoring 값 초기화
+    monitoring.cacheHit = 0;
+    monitoring.cacheMiss = 0;
+    monitoring.traffic = 0;
+
     /* db 에서 각 사용자에게 할당된 메모리 양 가지고 오기 */
 
     var MAX_MEMORY = config.totalMemory;
