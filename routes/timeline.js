@@ -38,6 +38,7 @@ router.get('/:userId', function(req, res, next) {
   var contentDataList = [];
 
   var promise = new Promise(function(resolved, rejected){
+    var key = req.params.userId;
     redisPool.indexMemory.lrange(key, start, end, function (err, result) {
         if(err) rejected("fail to get the index memory in Redis");
         contentIndexList = result;
@@ -48,6 +49,7 @@ router.get('/:userId', function(req, res, next) {
   promise
   .then(function(){
     return new Promise(function(resolved, rejected){
+      var key = req.params.userId;
       redisPool.locationMemory.get(key, function (err, result) {
           if(err) console.log("fail to get user location from redis! ");
           if(result){
@@ -55,7 +57,7 @@ router.get('/:userId', function(req, res, next) {
           } else {
             dbPool.getConnection(function(err, conn) {
               var query_stmt = 'SELECT userLocation FROM user ' +
-                               'WHERE userId = ' + req.params.userId;
+                               'WHERE userId = ' + key;
               conn.query(query_stmt, function(err, result) {
                   if(err) rejected("DB err!");
                   userLocation = result[0].userLocation;
