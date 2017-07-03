@@ -47,14 +47,14 @@ router.get('/:userId', function(req, res, next) {
   });
 
   promise
-  .then(function(){
+  .then(function(contentIndexList){
     return new Promise(function(resolved, rejected){
       var key = req.params.userId;
       redisPool.locationMemory.get(key, function (err, result) {
           if(err) console.log("fail to get user location from redis! ");
           if(result){
             userLocation = result;
-            resolved();
+            resolved(contentIndexList);
           } else {
             dbPool.getConnection(function(err, conn) {
               var query_stmt = 'SELECT userLocation FROM user ' +
@@ -62,7 +62,7 @@ router.get('/:userId', function(req, res, next) {
               conn.query(query_stmt, function(err, result) {
                   if(err) rejected("DB err!");
                   userLocation = result[0].userLocation;
-                  resolved();
+                  resolved(contentIndexList);
                   conn.release(); //MySQL connection release
               })
             });
