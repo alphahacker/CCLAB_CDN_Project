@@ -54,6 +54,7 @@ router.get('/:userId', function(req, res, next) {
           if(err) console.log("fail to get user location from redis! ");
           if(result){
             userLocation = result;
+            resolved();
           } else {
             dbPool.getConnection(function(err, conn) {
               var query_stmt = 'SELECT userLocation FROM user ' +
