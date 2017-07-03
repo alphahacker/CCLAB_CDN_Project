@@ -8,10 +8,10 @@ var monitoring = {
   getLatencyDelay : function (location1, location2) {
     var lat1, lng1, lat2, lng2;
 
-    lat1 = coord[location1].lat;
-    lng1 = coord[location1].lng;
-    lat2 = coord[location2].lat;
-    lng2 = coord[location2].lng;
+    lat1 = coord[location1.toUpperCase()].lat;
+    lng1 = coord[location1.toUpperCase()].lng;
+    lat2 = coord[location2.toUpperCase()].lat;
+    lng2 = coord[location2.toUpperCase()].lng;
 
     function deg2rad(deg) {
         return deg * (Math.PI/180)
