@@ -26,7 +26,8 @@ router.get('/:userId', function(req, res, next) {
   /* Read 할때 Cache hit 측정해줘야 한다. */
 
   //key는 사용자 ID
-  var key = req.params.userId;
+  //var key = req.params.userId;
+  var userLocation;
 
   //데이터는 한번에 20개씩 가져오도록 한다.
   var start = 0;
@@ -45,9 +46,37 @@ router.get('/:userId', function(req, res, next) {
   });
 
   promise
+  .then(function(){
+    return new Promise(function(resolved, rejected){
+      redisPool.locationMemory.get(key, function (err, result) {
+          if(err) console.log("fail to get user location from redis! ");
+          if(result){
+            userLocation = result;
+          } else {
+            dbPool.getConnection(function(err, conn) {
+              var query_stmt = 'SELECT userLocation FROM user ' +
+                               'WHERE userId = ' + req.params.userId;
+              conn.query(query_stmt, function(err, result) {
+                  if(err) rejected("DB err!");
+                  userLocation = result[0].userLocation;
+                  resolved();
+                  conn.release(); //MySQL connection release
+              })
+            });
+          }
+      });
+    })
+  }, function(err){
+      console.log(err);
+  })
+
   .then(function(contentIndexList){
     return new Promise(function(resolved, rejected){
 
+      var readStartTime = 0;
+      var readEndTime = 0;
+
+      readStartTime = new Date().getTime();
       getUserContentData = function(i, callback){
         if(i >= contentIndexList.length){
           callback();
@@ -59,7 +88,7 @@ router.get('/:userId', function(req, res, next) {
                 contentDataList.push(result);
                 console.log("cache hit!");
                 monitoring.cacheHit++;
-                operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
+                //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
                 getUserContentData(i+1, callback);
 
               } else {
@@ -72,11 +101,11 @@ router.get('/:userId', function(req, res, next) {
                         contentDataList.push(result[0].message);
                         console.log("cache miss!");
                         monitoring.cacheMiss++;
-                        operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
+                        //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
 
                       } else {
                         console.log("there's no data, even in the origin mysql server!");
-                        error_log.error("Error_log Test");
+                        error_log.error("there's no data, even in the origin mysql server!");
                       }
 
                       conn.release(); //MySQL connection release
@@ -89,6 +118,11 @@ router.get('/:userId', function(req, res, next) {
       }
 
       getUserContentData(0, function(){
+        readEndTime = new Date().getTime();
+        operation_log.info("[Read Execution Delay]= " + (readEndTime - readStartTime));
+        operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation));
+        operation_log.info("[Read Operation Count]= " + monitoring.readCount);
+        operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
         resolved();
       })
     })

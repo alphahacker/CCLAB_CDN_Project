@@ -21,6 +21,7 @@ var redisPool = require('./src/caching.js');
 var util = require('./src/util.js');
 var config = require('./src/configs.js');
 var monitoring = require('./src/monitoring.js');
+var coord = require('./src/coord.js');
 
 //----------------------------------------------------------------//
 
@@ -57,6 +58,7 @@ var init = function() {
     monitoring.cacheHit = 0;
     monitoring.cacheMiss = 0;
     monitoring.traffic = 0;
+    monitoring.readCount = 0;
 
     /* db 에서 각 사용자에게 할당된 메모리 양 가지고 오기 */
 
@@ -64,6 +66,7 @@ var init = function() {
     var serverLocation;
     var result = [];
     var allUsersContents = [];
+    var userLocations = [];
 
     var promise = new Promise(function(resolved, rejected){
       //기존에 redis에 있던 내용들 다 지워버려야 함
@@ -255,6 +258,110 @@ var init = function() {
     .then(function(){
       return new Promise(function(resolved, rejected){
         console.log("index memory ready");
+        resolved();
+      })
+    }, function(err){
+        console.log(err);
+    })
+
+    /**************************************************************************/
+    /************************** User Location 초기화 ****************************/
+    /**************************************************************************/
+    .then(function(){
+      return new Promise(function(resolved, rejected){
+        dbPool.getConnection(function(err, conn) {
+            var query_stmt = 'SELECT userId, userLocation FROM user';
+            conn.query(query_stmt, function(err, rows) {
+                if(err) {
+                   rejected("DB err!");
+                }
+                for (var i=0; i<rows.length; i++) {
+                    userLocations.push({
+                        userId : rows[i].userId,
+                        userLocation : rows[i].userLocation
+                    });
+                }
+                conn.release(); //MySQL connection release
+                resolved();
+            })
+        });
+      })
+    }, function(err){
+        console.log(err);
+    })
+    .then(function(){
+      return new Promise(function(resolved, rejected){
+        setUserLocationInRedis = function(i, callback){
+          if(i >= userLocations.length){
+            callback();
+          } else {
+            var key = userLocations[i].userId;
+            var value = userLocations[i].userLocation;
+            redisPool.locationMemory.set(key, value, function (err) {
+                if(err) rejected("fail to initialize user location memory in Redis");
+                console.log("["+ i +"] key : " + key + ", value : " + value);
+                setUserLocationInRedis(i+1, callback);
+            });
+          }
+        }
+
+        setUserLocationInRedis(0, function(){
+          resolved();
+        })
+      })
+    }, function(err){
+        console.log(err);
+    })
+    .then(function(){
+      return new Promise(function(resolved, rejected){
+        console.log("user location memory ready");
+        resolved();
+      })
+    }, function(err){
+        console.log(err);
+    })
+
+    /**************************************************************************/
+    /************************** coord information *****************************/
+    /**************************************************************************/
+
+    .then(function(){
+      return new Promise(function(resolved, rejected){
+        dbPool.getConnection(function(err, conn) {
+            var query_stmt = 'SELECT * FROM coord';
+            conn.query(query_stmt, function(err, rows) {
+                if(err) {
+                   rejected("DB err!");
+                }
+                for (var i=0; i<rows.length; i++) {
+                    coord[rows[i].location] = {
+                      lat : rows[i].lat,
+                      lng : rows[i].lng
+                    };
+                }
+                conn.release(); //MySQL connection release
+                resolved();
+            })
+        });
+      })
+    }, function(err){
+        console.log(err);
+    })
+
+    // .then(function(){
+    //   return new Promise(function(resolved, rejected){
+    //     console.log("NEWYORK : " + coord['NEWYORK'].lat + ", " + coord['NEWYORK'].lng);
+    //     console.log("VIRGINIA : " + coord['VIRGINIA'].lat + ", " + coord['VIRGINIA'].lng);
+    //     console.log("CHICAGO : " + coord['CHICAGO'].lat + ", " + coord['CHICAGO'].lng);
+    //     console.log("RHODE : " + coord['RHODE'].lat + ", " + coord['RHODE'].lng);
+    //   })
+    // }, function(err){
+    //     console.log(err);
+    // })
+
+    .then(function(){
+      return new Promise(function(resolved, rejected){
+        console.log("coord information ready");
         resolved();
       })
     }, function(err){

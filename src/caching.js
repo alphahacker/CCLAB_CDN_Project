@@ -5,6 +5,7 @@ var redisClient = {};
 redisClient.indexMemory = redis.createClient(1234, '127.0.0.1');
 redisClient.dataMemory = redis.createClient(1235, '127.0.0.1');
 redisClient.socialMemory = redis.createClient(1236, '127.0.0.1');
+redisClient.locationMemory = redis.createClient(1237, '127.0.0.1');
 
 redisClient.flushMemory = function () {
   redisClient.indexMemory.flushdb( function (err, succeeded) {
@@ -20,6 +21,11 @@ redisClient.flushMemory = function () {
   redisClient.dataMemory.flushdb( function (err, succeeded) {
       if(err) throw err;
       console.log("social memory flush completed"); // will be true if successfull
+  });
+
+  redisClient.locationMemory.flushdb( function (err, succeeded) {
+      if(err) throw err;
+      console.log("location memory flush completed"); // will be true if successfull
   });
 }
 

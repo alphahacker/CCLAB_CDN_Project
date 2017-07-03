@@ -5,7 +5,7 @@ var count = 0;
 
 var util = {
   serverIp : function (cb) {
-    console.log("addr test 2 : " + ip.address());
+    //console.log("addr test 2 : " + ip.address());
     return ip.address();
 
     // dns.lookup(os.hostname(), function(err, add, fam){
@@ -39,7 +39,7 @@ var util = {
     var serverLocation;
     var thisServerIp = util.serverIp();
     console.log("this server ip : " + thisServerIp);
-    if(thisServerIp == '192.168.0.27') {
+    if(thisServerIp == '192.168.0.11') {
         serverLocation = 'newyork';
     }
     else if (thisServerIp == '165.132.104.208') {
