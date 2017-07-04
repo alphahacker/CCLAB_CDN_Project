@@ -1,0 +1,18 @@
+{
+  "appenders": [
+    {
+      "type": "dateFile",
+      "filename": "log/error.log",
+      "pattern": "-yyyy-MM-dd",
+      "category" : "error",
+      "alwaysIncludePattern": true
+    },
+    {
+      "type": "dateFile",
+      "filename": "log/operation.log",
+      "pattern": "-yyyy-MM-dd",
+      "category" : "operation",
+      "alwaysIncludePattern": true
+    }
+  ]
+}
