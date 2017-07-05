@@ -16,12 +16,13 @@ var app = express();
 
 //---------------------------------------------------------------------------//
 
-//Get each user's timeline contents
-router.get('/userInfoList/:botNumber', function(req, res, next) {
+router.get('/userInfoList/botNum/:botNumber/botTotal/:botTotal', function(req, res, next) {
 	var userList = [];
 	dbPool.getConnection(function(err, conn) {
 	  var query_stmt = 'SELECT userId, userLocation FROM user ' +
-					   'WHERE botNo = ' + req.params.botNumber;
+					   'WHERE botNo = ' + req.params.botNumber + ' ' +
+					   'LIMIT ' + req.params.botTotal;
+	  console.log(query_stmt);
 	  conn.query(query_stmt, function(err, result) {
 		if(err) error_log.info("Fail to get userInfoList");
 		for(var i=0; i<result.length; i++){
@@ -29,8 +30,9 @@ router.get('/userInfoList/:botNumber', function(req, res, next) {
 				userId : result[i].userId,
 				userLocation : result[i].userLocation
 			});
-		} 
-		operation_log.info("The number of userList gotten at this time = " + userList.length);
+		}
+		console.log(userList);
+		//operation_log.info("The number of userList gotten at this time = " + userList.length);
 		conn.release(); //MySQL connection release
 		res.json({
 			userInfoList : userList
