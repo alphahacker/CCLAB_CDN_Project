@@ -1,9 +1,9 @@
 var dbPool = require('mysql').createPool({
-    connectionLimit : 10,
-    host            : '165.132.104.207',  //origin server IP
+    connectionLimit : 100,
+    host            : '165.132.104.211',  //DBCP server IP
     user            : 'root',
     password        : 'cclab',
-    database        : 'origin'  //DB명도 surrogate말고 origin으로 바꾸는 게 좋을 듯.
+    database        : 'dbcp' 
 });
 
 module.exports = dbPool;
