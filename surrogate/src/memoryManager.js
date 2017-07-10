@@ -14,19 +14,23 @@ var memoryManager = {
 		var userId = tweetObject.userId;
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
-				console.log("!!!! user : " + userId);
+				operation_log.info();
+				operation_log.info("[User Id]= " + userId);
+				//console.log("!!!! user : " + userId);
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
 
 				if(currRemainMemory >= 0){
-					console.log("current remain memory > 0 : " + currRemainMemory);
-					operation_log.info("Operation_log Test - in memoryManager");
+					//console.log("current remain memory > 0 : " + currRemainMemory);
+					operation_log.info("Current remain memory > 0 : " + currRemainMemory);
+					//operation_log.info("Operation_log Test - in memoryManager");
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
 						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
 				}
 				else{
 					var promise = new Promise(function(resolved, rejected){
-						console.log("current remain memory < 0 : " + currRemainMemory);
+						operation_log.info("Current remain memory < 0 : " + currRemainMemory);
+						//console.log("current remain memory < 0 : " + currRemainMemory);
 						//1. 해당 유저의 index 메모리 값들 가지고 오기
 						memoryManager.getUserIndexMemory(userId, function(userContents){
 							resolved(userContents);
@@ -38,12 +42,12 @@ var memoryManager = {
 						return new Promise(function(resolved, rejected){
 							//2. 추출되어야하는 데이터 리스트 가지고 오기
 							var extractedIndexList = [];
-							console.log("userContents["+userId+"]:");
-							console.log(userContents);
+							//console.log("userContents["+userId+"]:");
+							//console.log(userContents);
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
-								console.log("extractedIndexList ["+userId+"]:");
-								console.log("length1:"+extractedIndexList.length);
-								console.log(extractedIndexList);
+								//console.log("extractedIndexList ["+userId+"]:");
+								//console.log("length1:"+extractedIndexList.length);
+								//console.log(extractedIndexList);
 								//rejected();
 								resolved(extractedIndexList);
 							});
@@ -53,19 +57,19 @@ var memoryManager = {
 					})
 					.then(function(extractedIndexList){
 						return new Promise(function(resolved, rejected){
-							console.log("length2:"+extractedIndexList.length);
+							//console.log("length2:"+extractedIndexList.length);
 							for(var i=0; i<extractedIndexList.length; i++){
 								var removeData = function(j){
-									console.log("delete " + j + "th element of extractedIndexList");
-									console.log("extractedIndexList["+j+"].index = " + extractedIndexList[j].index);
+									//console.log("delete " + j + "th element of extractedIndexList");
+									//console.log("extractedIndexList["+j+"].index = " + extractedIndexList[j].index);
 									redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
-										if(err)	{ console.log("delete data error! "); rejected("delete data error!! "); }
+										if(err)	{ rejected("delete data error!! "); }
 										else {
 												var updatedMemory;
 												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-												console.log("update memory " + j + "th element of extractedIndexList");
-												console.log("updatedMemory = " + updatedMemory);
-												console.log("user id = " + userId);
+												//console.log("update memory " + j + "th element of extractedIndexList");
+												//console.log("updatedMemory = " + updatedMemory);
+												//console.log("user id = " + userId);
 												memoryManager.setUserMemory(userId, updatedMemory, function(){
 													if(j == (extractedIndexList.length - 1)) {
 														console.log("Deleted Successfully!");
@@ -80,11 +84,13 @@ var memoryManager = {
 						})
 					}, function(err){
 							console.log(err);
+							error_log.info("delete data error! : " + err);
 					})
 				} // end else
 			})
 		} catch (e) {
 			console.log("get user memory error! : " + e);
+			error_log.info("get user memory error! : " + e);
 		}
 	},
 
@@ -104,6 +110,7 @@ var memoryManager = {
 				      conn.query(query_stmt, function(err, rows) {
 		  			      if(err) {
 						         console.log("db err");
+										 error_log.info("db err");
 					        }
 					        else {
 						          //3. 없으면 디비에 가져와서 캐쉬에 올리고 리턴
@@ -112,7 +119,8 @@ var memoryManager = {
 											value = (value * config.totalMemory);
 											remainMemory = value;
 						          redisPool.socialMemory.set(key, value, function (err) {
-							            console.log("!!! reset data in social memory (cuz, there's no in redis) : " + value);
+							            //console.log("!!! reset data in social memory (cuz, there's no in redis) : " + value);
+													operation_log.info("!!! reset data in social memory (cuz, there's no in redis) : " + value);
 													conn.release();
 													cb(remainMemory);
 						          });
@@ -133,8 +141,8 @@ var memoryManager = {
 		var key = userId;
 		var value = currMemory;
 		redisPool.socialMemory.set(key, value, function (err) {
-				if(err) console.log("fail to update the social memory in Redis");
-				console.log("now, user [" + userId + "]'s memory : " + value);
+				if(err) error_log.info("fail to update the social memory in Redis");
+				//console.log("now, user [" + userId + "]'s memory : " + value);
 				cb();
 		});
   },
@@ -147,7 +155,7 @@ var memoryManager = {
 		var start = 0;
 		var end = -1;
 		redisPool.indexMemory.lrange(key, start, end, function (err, result) {
-				if(err) console.log("fail to get the user index memory contents in redis!");
+				if(err) error_log.info("fail to get the user index memory contents in redis!");
 				contentList = result;
 				cb(contentList);
 		});
@@ -156,14 +164,14 @@ var memoryManager = {
 
 	//추출되어야 하는 데이터 리스트
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
-		console.log("userContents.length = " + userContents.length);
+		//console.log("userContents.length = " + userContents.length);
 		var updatedMemory = currRemainMemory;
 		var breakFlag = false;
 		for(var i=userContents.length-1; i>=0; i--){
 			var eachContent = function (index) {
 				var key = userContents[index];
 				redisPool.dataMemory.get(key, function (err, result) {
-						if(err) console.log("fail to push the content from data memory in redis! ");
+						if(err) error_log.info("fail to push the content from data memory in redis! ");
 						if(result == undefined || result == null){
 							return false;
 						}

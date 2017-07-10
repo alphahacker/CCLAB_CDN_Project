@@ -136,7 +136,8 @@ router.get('/:userId', function(req, res, next) {
   .then(function(){
     return new Promise(function(resolved, rejected){
       res.json({
-        contents:contentDataList
+        status : "OK",
+        contents : contentDataList
       });
     })
   }, function(err){
@@ -154,7 +155,7 @@ router.post('/:userId', function(req, res, next) {
       var friendList = [];
       dbPool.getConnection(function(err, conn) {
           var query_stmt = 'SELECT friendId FROM friendList WHERE userId = "' + req.params.userId + '"';
-          console.log(query_stmt);
+          //console.log(query_stmt);
           conn.query(query_stmt, function(err, rows) {
               if(err) {
                  rejected("fail to extract friend id list from origin server!");
@@ -310,8 +311,10 @@ router.post('/:userId', function(req, res, next) {
       }
 
       pushTweetInDataMemory(0, function(){
+        //res.send("OK");
         res.json({
-          "result" : "completed"
+          "status" : "OK"
+          //"result" : "completed"
         })
         resolved();
       })

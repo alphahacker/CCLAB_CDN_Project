@@ -3,6 +3,11 @@ var request = require('request');
 var util = require('../src/util.js');
 var config = require('./configs.js');
 
+var log4js = require('log4js');
+log4js.configure('./configure/log4js.json');
+var operation_log = log4js.getLogger("operation");
+var error_log = log4js.getLogger("error");
+
 var redirect = {
 	send : function(tweetObjectList) {
 
@@ -34,13 +39,15 @@ var redirect = {
     //     content_id: tweetObject.contentId,
     //     content: tweetObject.content
     //  };
-		console.log("tweetObjectList = ");
-		console.log(tweetObjectList);
+
+		//console.log("tweetObjectList = ");
+		//console.log(tweetObjectList);
       for(var i=0; i<ipList.length; i++){
           var deliverData = function(index){
-							console.log("ipList["+index+"] : " + ipList[index]);
-              if(ipList[index] != thisServerIp){
-									console.log("redirect target ip : " + ipList[index]);
+							operation_log.info("ipList["+index+"] : " + ipList[index]);
+							if(ipList[index] != thisServerIp){
+									operation_log.info("redirect target ip : " + ipList[index]);
+									//console.log("redirect target ip : " + ipList[index]);
                   request.post({
                       url: 'http://' + ipList[index] + '/redirector',
                   //    url: 'https://todoist.com/oauth/access_token',
