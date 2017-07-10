@@ -155,7 +155,7 @@ router.post('/:userId', function(req, res, next) {
       var friendList = [];
       dbPool.getConnection(function(err, conn) {
           var query_stmt = 'SELECT friendId FROM friendList WHERE userId = "' + req.params.userId + '"';
-          //console.log(query_stmt);
+          console.log(query_stmt);
           conn.query(query_stmt, function(err, rows) {
               if(err) {
                  rejected("fail to extract friend id list from origin server!");
