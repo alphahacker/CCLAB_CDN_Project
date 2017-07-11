@@ -269,6 +269,34 @@ router.post('/:userId', function(req, res, next) {
   })
 
   //3-2. origin server에 있는 mysql의 timeline에, 모든 친구들에 대해서 데이터를 넣는다.
+  // .then(function(){
+  //   return new Promise(function(resolved, rejected){
+  //     pushIndexInOriginDB = function(i, callback){
+  //       if(i >= tweetObjectList.length){
+  //         callback();
+  //       } else {
+  //         dbPool.getConnection(function(err, conn) {
+  //             var query_stmt = 'INSERT INTO timeline (uid, contentId) SELECT id, ' + tweetObjectList[i].contentId
+  //                           + ' FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
+  //             conn.query(query_stmt, function(err, result) {
+  //                 if(err) {
+  //                    rejected("DB err!");
+  //                 }
+  //
+  //                 conn.release(); //MySQL connection release
+  //                 pushIndexInOriginDB(i+1, callback);
+  //             })
+  //         });
+  //       }
+  //     }
+  //
+  //     pushIndexInOriginDB(0, function(){
+  //       resolved();
+  //     })
+  //   })
+  // }, function(err){
+  //     console.log(err);
+  // })
   .then(function(){
     return new Promise(function(resolved, rejected){
       pushIndexInOriginDB = function(i, callback){
@@ -276,15 +304,29 @@ router.post('/:userId', function(req, res, next) {
           callback();
         } else {
           dbPool.getConnection(function(err, conn) {
-              var query_stmt = 'INSERT INTO timeline (uid, contentId) SELECT id, ' + tweetObjectList[i].contentId
-                            + ' FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
+              var query_stmt = 'SELECT id FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
               conn.query(query_stmt, function(err, result) {
                   if(err) {
+                     error_log.debug("Query Stmt = " + query_stmt);
+                     error_log.debug("ERROR MSG = " + err);
                      rejected("DB err!");
                   }
-
                   conn.release(); //MySQL connection release
-                  pushIndexInOriginDB(i+1, callback);
+                  var userPkId = result[0].id;
+                  //////////////////////////////////////////////////////////////
+                  dbPool.getConnection(function(err, conn) {
+                      var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
+                      conn.query(query_stmt2, function(err, result) {
+                          if(result == undefined || result == null){
+                              operation_log.debug("Query Stmt = " + query_stmt2);
+                              operation_log.debug("Query Result = " + result);
+                          }
+
+                          conn.release();
+                          pushIndexInOriginDB(i+1, callback);
+                      });
+                  });
+                  //////////////////////////////////////////////////////////////
               })
           });
         }
