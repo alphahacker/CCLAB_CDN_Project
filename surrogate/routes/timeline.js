@@ -188,12 +188,17 @@ router.post('/:userId', function(req, res, next) {
 
                   conn.release(); //MySQL connection release
 
-                  var tweetObject = {};
-                  tweetObject.userId = friendList[i];
-                  tweetObject.contentId = Number(result.insertId);
-                  tweetObject.content = req.body.contentData;
-                  tweetObjectList.push(tweetObject);
-
+                  if(result == undefined || result == null){
+                      operation_log.debug("Query Stmt = " + query_stmt);
+                      operation_log.debug("Query Result = " + result);
+                  }
+                  else {
+                    var tweetObject = {};
+                    tweetObject.userId = friendList[i];
+                    tweetObject.contentId = Number(result.insertId);
+                    tweetObject.content = req.body.contentData;
+                    tweetObjectList.push(tweetObject);
+                  }
                   pushTweetInOriginDB(i+1, callback);
               })
           });
