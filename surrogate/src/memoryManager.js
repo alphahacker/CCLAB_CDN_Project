@@ -14,11 +14,11 @@ var memoryManager = {
 		var userId = tweetObject.userId;
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
-				operation_log.info("[User Id]= " + userId);
+				//operation_log.info("[User Id]= " + userId);
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
 				if(currRemainMemory >= 0){
-					operation_log.info("Current remain memory > 0 : " + currRemainMemory);
-					operation_log.info();
+					//operation_log.info("Current remain memory > 0 : " + currRemainMemory);
+					//operation_log.info();
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
 						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
