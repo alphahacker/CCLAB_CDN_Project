@@ -216,6 +216,7 @@ router.post('/:userId', function(req, res, next) {
   // })
   promise
   .then(function(friendList){
+    console.log(friendList);
     return new Promise(function(resolved, rejected){
       pushTweetInOriginDB = function(i, callback){
         if(i >= friendList.length){
@@ -223,6 +224,7 @@ router.post('/:userId', function(req, res, next) {
         } else {
           dbPool.getConnection(function(err, conn) {
               var query_stmt = 'SELECT id FROM user WHERE userId = "' + friendList[i] + '"'
+              console.log(query_stmt);
               conn.query(query_stmt, function(err, result) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
@@ -234,6 +236,7 @@ router.post('/:userId', function(req, res, next) {
                   //////////////////////////////////////////////////////////////
                   dbPool.getConnection(function(err, conn) {
                       var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + result[i] + ', "' + req.body.contentData + '")'
+                      console.log(query_stmt2);
                       conn.query(query_stmt2, function(err, result) {
                           if(result == undefined || result == null){
                               operation_log.debug("Query Stmt = " + query_stmt2);
