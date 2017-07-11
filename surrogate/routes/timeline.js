@@ -231,11 +231,12 @@ router.post('/:userId', function(req, res, next) {
                      error_log.debug("ERROR MSG = " + err);
                      rejected("DB err!");
                   }
+                  var userPkId = result[0].id;
                   conn.release(); //MySQL connection release
 
                   //////////////////////////////////////////////////////////////
                   dbPool.getConnection(function(err, conn) {
-                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + result[i].id + ', "' + req.body.contentData + '")'
+                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + userPkId + ', "' + req.body.contentData + '")'
                       console.log(query_stmt2);
                       conn.query(query_stmt2, function(err, result) {
                           if(result == undefined || result == null){
