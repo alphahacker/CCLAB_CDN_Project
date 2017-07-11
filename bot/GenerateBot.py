@@ -23,20 +23,30 @@ def getUsersInfoFromDB(botNumber, botTotal):
     DBPSServer = DBPS()
     userInfoList = DBPSServer.getUserInfoList(botNumber, botTotal)
 
-    '''
-	userInfoList = recvFromServer.split()
-	for i in range(0, len(userInfoList)):
-		userInfo = userInfoList[i].split('=')
-		usersInfoList.append(userInfo)
-    '''
-
     return userInfoList
+
+def mainStart(botNumber, botTotal):
+    if not findBotFile():
+        print "[Error] Can't find botFile"
+        sys.exit(1)
+
+    try:
+        usersInfoList = getUsersInfoFromDB(botNumber, botTotal)
+        if len(usersInfoList) < 1:
+            print "[Error] There is no user data"
+            sys.exit(1)
+
+        operateMultiProcess(usersInfoList, botTotal)
+    except Exception as e:
+        print "[Error] Abnormally exit"
+        print e
+        sys.exit(1)
 
 def operateMultiProcess(usersInfoList, botTotal):
     procList = []
 
     for i in range(0, len(usersInfoList)):
-        procList.append(Process(target = fn_process, args = (usersInfoList[i]["userId"], usersInfoList[i]["userLocation"])))
+        procList.append(Process(target = fn_process, args = (usersInfoList[i]["userId"], usersInfoList[i]["userLocation"],)))
 
     procNumber = 0
     for eachBot in procList:
@@ -59,25 +69,9 @@ def fn_process(*argv):
     currentPath = os.getcwd()
     botFilePath = currentPath + "\\" + BOT_FILE
 
-    completedCommand = botFilePath + " " + command_user_id + " " + command_user_location
+    #completedCommand = botFilePath + " " + command_user_id + " " + command_user_location
+    completedCommand = "python " + botFilePath + " " + command_user_id + " " + command_user_location
     os.system(completedCommand)
-
-def mainStart(botNumber, botTotal):
-    if not findBotFile():
-        print "[Error] Can't find botFile"
-        sys.exit(1)
-
-    try:
-        usersInfoList = getUsersInfoFromDB(botNumber, botTotal)
-        if len(usersInfoList) < 1:
-            print "[Error] There is no user data"
-            sys.exit(1)
-
-        operateMultiProcess(usersInfoList, botTotal)
-    except Exception as e:
-        print "[Error] Abnormally exit"
-        print e
-        sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

@@ -12,16 +12,12 @@ def setEnvPath(path):
 
 
 if __name__ == "__main__":
-    '''
-        To do.
-        extract user name to operate bot
-    '''
 
     currentPath = getCurrentDir()
     setEnvPath(currentPath)
 
     from Log import *
-    #from Scheduler import Scheduler
+    from Scheduler import Scheduler
 
     # sample id
     if len(sys.argv) < 2:
@@ -37,14 +33,12 @@ if __name__ == "__main__":
     Log.debug("=============================================")
 
     try:
-        print "USER ID = " + userID + ", USER LOCATION = " + userPlace
-        '''
         schedulerForBot = Scheduler(userID, userPlace)
         if schedulerForBot == None:
             raise Exception
 
         schedulerForBot.start()
-       '''
+
     except Exception as e:
         Log.error("Fail to operate bot")
 
