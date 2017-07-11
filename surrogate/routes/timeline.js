@@ -235,7 +235,7 @@ router.post('/:userId', function(req, res, next) {
 
                   //////////////////////////////////////////////////////////////
                   dbPool.getConnection(function(err, conn) {
-                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + result[i] + ', "' + req.body.contentData + '")'
+                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + result[i].id + ', "' + req.body.contentData + '")'
                       console.log(query_stmt2);
                       conn.query(query_stmt2, function(err, result) {
                           if(result == undefined || result == null){
