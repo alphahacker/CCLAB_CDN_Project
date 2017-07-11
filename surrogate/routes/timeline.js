@@ -249,7 +249,7 @@ router.post('/:userId', function(req, res, next) {
   .then(function(){
     return new Promise(function(resolved, rejected){
       try {
-        if(tweetobjectList.length > 0){
+        if(tweetObjectList.length > 0){
           redirect.send(tweetObjectList);
           // redirect.send({ user_id : req.params.userId,
           //                 contentData : req.body.contentData });
