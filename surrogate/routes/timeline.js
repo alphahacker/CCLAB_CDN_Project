@@ -171,6 +171,49 @@ router.post('/:userId', function(req, res, next) {
   });
 
   //3-1. origin server에 있는 mysql의 content에 모든 친구들에 대해서 데이터를 넣는다. 이 때, lastInsertId를 이용해서 contentId를 만듦.
+  //promise
+  // .then(function(friendList){
+  //   return new Promise(function(resolved, rejected){
+  //     pushTweetInOriginDB = function(i, callback){
+  //       if(i >= friendList.length){
+  //         callback();
+  //       } else {
+  //         dbPool.getConnection(function(err, conn) {
+  //             var query_stmt = 'INSERT INTO content (uid, message) SELECT id, "' + req.body.contentData
+  //                           + '" FROM user WHERE userId = "' + friendList[i] + '"';
+  //             conn.query(query_stmt, function(err, result) {
+  //                 if(err) {
+  //                    error_log.debug("Query Stmt = " + query_stmt);
+  //                    error_log.debug("ERROR MSG = " + err);
+  //                    rejected("DB err!");
+  //                 }
+  //
+  //                 conn.release(); //MySQL connection release
+  //
+  //                 if(result == undefined || result == null){
+  //                     operation_log.debug("Query Stmt = " + query_stmt);
+  //                     operation_log.debug("Query Result = " + result);
+  //                 }
+  //                 else {
+  //                   var tweetObject = {};
+  //                   tweetObject.userId = friendList[i];
+  //                   tweetObject.contentId = Number(result.insertId);
+  //                   tweetObject.content = req.body.contentData;
+  //                   tweetObjectList.push(tweetObject);
+  //                 }
+  //                 pushTweetInOriginDB(i+1, callback);
+  //             })
+  //         });
+  //       }
+  //     }
+  //
+  //     pushTweetInOriginDB(0, function(){
+  //       resolved();
+  //     })
+  //   })
+  // }, function(err){
+  //     console.log(err);
+  // })
   promise
   .then(function(friendList){
     return new Promise(function(resolved, rejected){
@@ -179,30 +222,36 @@ router.post('/:userId', function(req, res, next) {
           callback();
         } else {
           dbPool.getConnection(function(err, conn) {
-              var query_stmt = 'INSERT INTO content (uid, message) SELECT id, "' + req.body.contentData
-                            + '" FROM user WHERE userId = "' + friendList[i] + '"';
+              var query_stmt = 'SELECT id FROM user WHERE userId = "' + friendList[i] + '"'
               conn.query(query_stmt, function(err, result) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
                      error_log.debug("ERROR MSG = " + err);
                      rejected("DB err!");
                   }
-
                   conn.release(); //MySQL connection release
 
-                  if(result == undefined || result == null){
-                      operation_log.debug("Query Stmt = " + query_stmt);
-                      operation_log.debug("Query Result = " + result);
-                  }
-                  else {
-                    var tweetObject = {};
-                    tweetObject.userId = friendList[i];
-                    tweetObject.contentId = Number(result.insertId);
-                    tweetObject.content = req.body.contentData;
-                    tweetObjectList.push(tweetObject);
-                  }
-                  pushTweetInOriginDB(i+1, callback);
-              })
+                  //////////////////////////////////////////////////////////////
+                  dbPool.getConnection(function(err, conn) {
+                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + result[i] + ', "' + req.body.contentData + '")'
+                      conn.query(query_stmt2, function(err, result) {
+                          if(result == undefined || result == null){
+                              operation_log.debug("Query Stmt = " + query_stmt2);
+                              operation_log.debug("Query Result = " + result);
+                          }
+                          else {
+                            var tweetObject = {};
+                            tweetObject.userId = friendList[i];
+                            tweetObject.contentId = Number(result.insertId);
+                            tweetObject.content = req.body.contentData;
+                            tweetObjectList.push(tweetObject);
+                          }
+                          conn.release();
+                          pushTweetInOriginDB(i+1, callback);
+                      });
+                  });
+                  //////////////////////////////////////////////////////////////
+              });
           });
         }
       }
