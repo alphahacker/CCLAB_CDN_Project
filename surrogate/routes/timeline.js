@@ -254,11 +254,11 @@ router.post('/:userId', function(req, res, next) {
           // redirect.send({ user_id : req.params.userId,
           //                 contentData : req.body.contentData });
         }
-        
+
         resolved();
 
       } catch (e) {
-        rejected("redirect error");
+        rejected("redirect error : " + e);
       }
     })
   }, function(err){
