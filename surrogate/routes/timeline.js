@@ -126,6 +126,7 @@ router.get('/:userId', function(req, res, next) {
         operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation));
         operation_log.info("[Read Operation Count]= " + ++monitoring.readCount);
         operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
+        operation_log.info();
         resolved();
       })
     })

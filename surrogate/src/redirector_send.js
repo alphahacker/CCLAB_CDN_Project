@@ -44,9 +44,8 @@ var redirect = {
 		//console.log(tweetObjectList);
       for(var i=0; i<ipList.length; i++){
           var deliverData = function(index){
-							operation_log.info("ipList["+index+"] : " + ipList[index]);
 							if(ipList[index] != thisServerIp){
-									operation_log.info("redirect target ip : " + ipList[index]);
+									operation_log.info("Redirect Target IP : " + ipList[index]);
 									//console.log("redirect target ip : " + ipList[index]);
                   request.post({
                       url: 'http://' + ipList[index] + '/redirector',
@@ -57,6 +56,9 @@ var redirect = {
 										if(err) throw err;
 										// console.log("redirection response : ");
 										// console.log(httpResponse);
+
+										if(index == (ipList.length - 1))	operation_log.info();
+										
 										return httpResponse;
                   });
               }
