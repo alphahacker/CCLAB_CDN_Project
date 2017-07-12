@@ -8,6 +8,7 @@ var log4js = require('log4js');
 log4js.configure('./configure/log4js.json');
 var operation_log = log4js.getLogger("operation");
 var error_log = log4js.getLogger("error");
+var interim_log = log4js.getLogger("interim");
 
 var dbPool = require('../src/db.js');
 var redisPool = require('../src/caching.js');
@@ -40,7 +41,12 @@ router.get('/:userId', function(req, res, next) {
   var promise = new Promise(function(resolved, rejected){
     var key = req.params.userId;
     redisPool.indexMemory.lrange(key, start, end, function (err, result) {
-        if(err) rejected("fail to get the index memory in Redis");
+        if(err){
+          error_log.info("fail to get the index memory in Redis : " + err);
+          error_log.info("key (req.params.userId) : " + key + ", start : " + start + ", end : " + end);
+          error_log.info();
+          rejected("fail to get the index memory in Redis");
+        }
         contentIndexList = result;
         resolved(contentIndexList);
     });
@@ -51,7 +57,12 @@ router.get('/:userId', function(req, res, next) {
     return new Promise(function(resolved, rejected){
       var key = req.params.userId;
       redisPool.locationMemory.get(key, function (err, result) {
-          if(err) console.log("fail to get user location from redis! ");
+          if(err){
+            error_log.info("fail to get user location from redis! : " + err);
+            error_log.info("key (req.params.userId) : " + key);
+            error_log.info();
+            rejected("fail to get user location from redis! ");
+          }
           if(result){
             userLocation = result;
             resolved(contentIndexList);
@@ -60,7 +71,12 @@ router.get('/:userId', function(req, res, next) {
               var query_stmt = 'SELECT userLocation FROM user ' +
                                'WHERE userId = ' + key;
               conn.query(query_stmt, function(err, result) {
-                  if(err) rejected("DB err!");
+                  if(err){
+                    error_log.info("fail to get user location from MySQL! : " + err);
+                    error_log.info("key (userId) : " + key);
+                    error_log.info();
+                    rejected("fail to get user location from MySQL!");
+                  }
                   userLocation = result[0].userLocation;
                   resolved(contentIndexList);
                   conn.release(); //MySQL connection release
@@ -86,12 +102,16 @@ router.get('/:userId', function(req, res, next) {
         } else {
           var key = contentIndexList[i];
           redisPool.dataMemory.get(key, function (err, result) {
-              if(err) console.log("fail to push the content from data memory in redis! ");
+              if(err){
+                error_log.info("fail to push the content from data memory in redis! : " + err );
+                error_log.info("key (contentIndexList[" + i + "] = " + contentIndexList[i] + ") : " + key);
+                error_log.info();
+                rejected("fail to push the content from data memory in redis! ");
+              }
               if(result){
                 contentDataList.push(result);
                 console.log("cache hit!");
                 monitoring.cacheHit++;
-                //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
                 getUserContentData(i+1, callback);
 
               } else {
@@ -99,7 +119,12 @@ router.get('/:userId', function(req, res, next) {
                   var query_stmt = 'SELECT message FROM content ' +
                                    'WHERE id = ' + key;
                   conn.query(query_stmt, function(err, result) {
-                      if(err) rejected("DB err!");
+                      if(err){
+                        error_log.info("fail to get message (MySQL) : " + err);
+                        error_log.info("QUERY STMT : " + query_stmt);
+                        error_log.info();
+                        rejected("DB err!");
+                      }
                       if(result){
                         contentDataList.push(result[0].message);
                         console.log("cache miss!");
@@ -107,8 +132,8 @@ router.get('/:userId', function(req, res, next) {
                         //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
 
                       } else {
-                        console.log("there's no data, even in the origin mysql server!");
-                        error_log.error("there's no data, even in the origin mysql server!");
+                        error_log.error("There's no data, even in the origin mysql server!");
+                        error_log.error();
                       }
 
                       conn.release(); //MySQL connection release
@@ -122,9 +147,10 @@ router.get('/:userId', function(req, res, next) {
 
       getUserContentData(0, function(){
         readEndTime = new Date().getTime();
-        operation_log.info("[Read Execution Delay]= " + (readEndTime - readStartTime));
-        operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation));
+        operation_log.info("[Read Execution Delay]= " + (readEndTime - readStartTime) + "ms");
+        operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation) + "ms");
         operation_log.info("[Read Operation Count]= " + ++monitoring.readCount);
+        operation_log.info("[Read Traffic]= " + (monitoring.readCount * (end-start+1)));
         operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
         operation_log.info();
         resolved();
@@ -156,10 +182,11 @@ router.post('/:userId', function(req, res, next) {
       var friendList = [];
       dbPool.getConnection(function(err, conn) {
           var query_stmt = 'SELECT friendId FROM friendList WHERE userId = "' + req.params.userId + '"';
-          console.log(query_stmt);
           conn.query(query_stmt, function(err, rows) {
               if(err) {
-                 rejected("fail to extract friend id list from origin server!");
+                error_log.info("fail to get friendList (MySQL) : " + err);
+                error_log.info("QUERY STMT : " + query_stmt);
+                rejected("fail to extract friend id list from origin server!");
               }
               for (var i=0; i<rows.length; i++) {
                   friendList.push(rows[i].friendId);
@@ -224,11 +251,11 @@ router.post('/:userId', function(req, res, next) {
         } else {
           dbPool.getConnection(function(err, conn) {
               var query_stmt = 'SELECT id FROM user WHERE userId = "' + friendList[i] + '"'
-              console.log(query_stmt);
               conn.query(query_stmt, function(err, result) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
                      error_log.debug("ERROR MSG = " + err);
+                     error_log.debug();
                      rejected("DB err!");
                   }
                   var userPkId = result[0].id;
@@ -237,8 +264,13 @@ router.post('/:userId', function(req, res, next) {
                   //////////////////////////////////////////////////////////////
                   dbPool.getConnection(function(err, conn) {
                       var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + userPkId + ', "' + req.body.contentData + '")'
-                      console.log(query_stmt2);
                       conn.query(query_stmt2, function(err, result) {
+                          if(err) {
+                             error_log.debug("Query Stmt = " + query_stmt);
+                             error_log.debug("ERROR MSG = " + err);
+                             error_log.debug();
+                             rejected("DB err!");
+                          }
                           if(result == undefined || result == null){
                               operation_log.debug("Query Stmt = " + query_stmt2);
                               operation_log.debug("Query Result = " + result);
@@ -309,6 +341,7 @@ router.post('/:userId', function(req, res, next) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
                      error_log.debug("ERROR MSG = " + err);
+                     error_log.debug();
                      rejected("DB err!");
                   }
                   conn.release(); //MySQL connection release
@@ -317,6 +350,12 @@ router.post('/:userId', function(req, res, next) {
                   dbPool.getConnection(function(err, conn) {
                       var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
                       conn.query(query_stmt2, function(err, result) {
+                          if(err) {
+                             error_log.debug("Query Stmt = " + query_stmt);
+                             error_log.debug("ERROR MSG = " + err);
+                             error_log.debug();
+                             rejected("DB err!");
+                          }
                           if(result == undefined || result == null){
                               operation_log.debug("Query Stmt = " + query_stmt2);
                               operation_log.debug("Query Result = " + result);
@@ -346,14 +385,13 @@ router.post('/:userId', function(req, res, next) {
       try {
         if(tweetObjectList.length > 0){
           redirect.send(tweetObjectList);
-          // redirect.send({ user_id : req.params.userId,
-          //                 contentData : req.body.contentData });
         }
-
         resolved();
 
       } catch (e) {
-        rejected("redirect error : " + e);
+        error_log.debug("Redirect Error = " + e);
+        error_log.debug();
+        rejected("Redirect error : " + e);
       }
     })
   }, function(err){
@@ -369,10 +407,13 @@ router.post('/:userId', function(req, res, next) {
         } else {
           var key = tweetObjectList[i].userId;
           var value = tweetObjectList[i].contentId;
-
-          console.log("key (friendId) : " + key + ", value : " + value);
           redisPool.indexMemory.lpush(key, value, function (err) {
-              if(err) rejected("fail to push the content into friend's index memory in Redis");
+              if(err){
+                error_log.debug("fail to push the content into friend's index memory in Redis : " + err);
+                error_log.debug("key (tweetObjectList[i].userId) : " + key + ", value (tweetObjectList[i].contentId) : " + value);
+                error_log.debug();
+                rejected("fail to push the content into friend's index memory in Redis");
+              }
               pushTweetInIndexMemory(i+1, callback);
           });
         }
@@ -420,8 +461,10 @@ router.post('/:userId', function(req, res, next) {
         //res.send("OK");
         res.json({
           "status" : "OK"
-          //"result" : "completed"
         })
+        operation_log.info("[Write Operation Count]= " + ++monitoring.writeCount);
+        operation_log.info("[Write Traffic]= " + (monitoring.writeCount * req.body.contentData.length) + "B");
+        operation_log.info();
         resolved();
       })
     })

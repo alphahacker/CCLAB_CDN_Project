@@ -40,8 +40,6 @@ var util = require('../src/util.js');
 router.post('/', function(req, res, next) {
 
   var tweetObjectList = [];
-  console.log("req.body.contentList : ");
-  console.log(req.body.contentList);
   tweetObjectList = req.body.contentList;
 
   //2. 친구들 리스트 뽑아서
@@ -60,10 +58,12 @@ router.post('/', function(req, res, next) {
         } else {
           var key = tweetObjectList[i].userId;
           var value = tweetObjectList[i].contentId;
-
-          console.log("key (friendId) : " + key + ", value : " + value);
           redisPool.indexMemory.lpush(key, value, function (err) {
-              if(err) rejected("fail to push the content into friend's index memory in Redis");
+              if(err){
+                error_log.debug("fail to push the content into friend's index memory in Redis" + err);
+                error_log.debug();
+                rejected("fail to push the content into friend's index memory in Redis");
+              }
               pushTweetInIndexMemory(i+1, callback);
           });
         }
@@ -93,16 +93,6 @@ router.post('/', function(req, res, next) {
           */
           memoryManager.checkMemory(tweetObjectList[i]);
           pushTweetInDataMemory(i+1, callback);
-
-          // memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);  //파라미터로 데이터의 사이즈와 사용자의 ID를 넣어야함.
-          //
-          // var key = tweetObjectList[i].contentId;
-          // var value = tweetObjectList[i].content;
-          //
-          // redisPool.dataMemory.set(key, value, function (err) {
-          //     if(err) rejected("fail to push the content into friend's data memory in Redis");
-          //     pushTweetInDataMemory(i+1, callback);
-          // });
         }
       }
 
@@ -176,52 +166,6 @@ router.get('/ip/:userId', function(req, res, next) {
       res.json(value);
     }
   })
-
 });
-
-
-// //to get ip address
-// router.get('/ip/:userId', function(req, res, next) {
-//   //0. redis pool로 redis연결한다
-//   var key = req.params.userId;
-//   redisPool.get(key, function(err, data){
-//     if(err) {
-//       console.log(err);
-//       res.send("error : " + err);
-//       return;
-//     }
-//
-//     var value = JSON.parse(data);
-//     console.log("redis value : " + value);
-//     //2. cache에 값이 있는지 검사한다
-//     if(!value) {
-//       //1. mysql pool 로 db에 연결한다
-//       dbPool.getConnection(function(err, conn) {
-// 		var query_stmt = 'SELECT * FROM Test_table WHERE id = "' + key + '"';
-// 		console.log(query_stmt);
-// 		conn.query(query_stmt, function(err, rows) {
-// 			if(err) {
-// 				console.log("db err");
-// 			}
-// 			else {
-// 				//3-b. 없으면 디비에 가져와서 캐쉬에 올리고 리턴
-// 				var value = JSON.stringify(rows[0]);
-// 				redisPool.set(key, value, function (err) {
-// 					console.log(value);
-// 					res.json(value);
-// 				});
-// 			}
-// 		});
-// 		conn.release();
-// 	  });
-//     }
-//     else {
-//       //3-a. 있으면 가져와서 리턴
-//       console.log(value);
-//       res.json(value);
-//     }
-//   })
-//
-// });
 
 module.exports = router;

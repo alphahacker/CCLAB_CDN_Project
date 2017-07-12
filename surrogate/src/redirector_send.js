@@ -10,60 +10,31 @@ var error_log = log4js.getLogger("error");
 
 var redirect = {
 	send : function(tweetObjectList) {
-
-    //여기서 하나 뺴고, 자기의 IP빼고 다른 IP들이 어떤건지 추출해야함.
     var ipList = config.ipList;
-    //var ipList = ['192.168.120.16', '165.132.122.242'];
     var thisServerIp = util.serverIp();
 
-    /*
-    var option = {
-      url : util.format('https://iid.googleapis.com/iid/v1/%s/rel/topics/%s', token, topicName),
-      method : 'POST',
-      headers : {
-        'Content-Type': 'application/json'
-      }
+    for(var i=0; i<ipList.length; i++){
+        var deliverData = function(index){
+						if(ipList[index] != thisServerIp){
+								operation_log.info("Redirect Target IP : " + ipList[index]);
+
+                request.post({
+                    url: 'http://' + ipList[index] + '/redirector',
+                    form: { contentList : tweetObjectList }
+                },
+                function (err, httpResponse, body) {
+									if(err){
+										error_log.debug("fail to send redirect! ");
+		                error_log.debug();
+										throw err;
+									}
+									if(index == (ipList.length - 1))	operation_log.info();
+
+									return httpResponse;
+                });
+            }
+        }(i);
     }
-
-		request({
-			url: url,
-			method: "POST",
-			headers: { 'Content-Type': 'application/json', 'Authorization': 'key=' + fcmKey },
-            }, function (error, response, body) {
-				console.log(response);
-			});
-      */
-
-    //  var formData = {
-    //     user_id: tweetObject.userId,
-    //     content_id: tweetObject.contentId,
-    //     content: tweetObject.content
-    //  };
-
-		//console.log("tweetObjectList = ");
-		//console.log(tweetObjectList);
-      for(var i=0; i<ipList.length; i++){
-          var deliverData = function(index){
-							if(ipList[index] != thisServerIp){
-									operation_log.info("Redirect Target IP : " + ipList[index]);
-									//console.log("redirect target ip : " + ipList[index]);
-                  request.post({
-                      url: 'http://' + ipList[index] + '/redirector',
-                  //    url: 'https://todoist.com/oauth/access_token',
-                      form: { contentList : tweetObjectList }
-                  },
-                  function (err, httpResponse, body) {
-										if(err) throw err;
-										// console.log("redirection response : ");
-										// console.log(httpResponse);
-
-										if(index == (ipList.length - 1))	operation_log.info();
-										
-										return httpResponse;
-                  });
-              }
-          }(i);
-      }
 	}
 
 };
