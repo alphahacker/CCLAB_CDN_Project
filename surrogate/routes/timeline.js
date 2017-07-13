@@ -110,7 +110,7 @@ router.get('/:userId', function(req, res, next) {
               }
               if(result){
                 contentDataList.push(result);
-                console.log("cache hit!");
+                //console.log("cache hit!");
                 monitoring.cacheHit++;
                 getUserContentData(i+1, callback);
 
@@ -127,7 +127,7 @@ router.get('/:userId', function(req, res, next) {
                       }
                       if(result){
                         contentDataList.push(result[0].message);
-                        console.log("cache miss!");
+                        //console.log("cache miss!");
                         monitoring.cacheMiss++;
                         //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
 
@@ -243,7 +243,6 @@ router.post('/:userId', function(req, res, next) {
   // })
   promise
   .then(function(friendList){
-    console.log(friendList);
     return new Promise(function(resolved, rejected){
       pushTweetInOriginDB = function(i, callback){
         if(i >= friendList.length){
@@ -272,8 +271,8 @@ router.post('/:userId', function(req, res, next) {
                              rejected("DB err!");
                           }
                           if(result == undefined || result == null){
-                              operation_log.debug("Query Stmt = " + query_stmt2);
-                              operation_log.debug("Query Result = " + result);
+                              error_log.debug("Query Stmt = " + query_stmt2);
+                              error_log.debug("Query Result = " + result);
                           }
                           else {
                             var tweetObject = {};

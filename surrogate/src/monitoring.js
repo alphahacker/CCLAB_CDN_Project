@@ -31,6 +31,7 @@ var monitoring = {
     var d = R * c; // Distance in km
 
     interim_log.debug("distance (user, surrogate server)= " + d);
+    interim_log.debug();
 
     var latency_delay = 0;  //ms
     if(d==0){
