@@ -134,7 +134,7 @@ var init = function() {
             var value = MAX_MEMORY * result[i].friendPortion;
             redisPool.socialMemory.set(key, value, function (err) {
                 if(err) rejected("fail to initialize the social memory in Redis");
-                console.log("["+ i +"] key : " + key + ", value : " + value);
+                //console.log("["+ i +"] key : " + key + ", value : " + value);
                 setSocialMemoryInRedis(i+1, callback);
             });
           }
@@ -277,7 +277,7 @@ var init = function() {
             var value = userLocations[i].userLocation;
             redisPool.locationMemory.set(key, value, function (err) {
                 if(err) rejected("fail to initialize user location memory in Redis");
-                console.log("["+ i +"] key : " + key + ", value : " + value);
+                //console.log("["+ i +"] key : " + key + ", value : " + value);
                 setUserLocationInRedis(i+1, callback);
             });
           }
