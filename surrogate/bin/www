@@ -30,6 +30,14 @@ if(cluster.isMaster){
   var port = normalizePort(process.env.PORT || '80');
   app.set('port', port);
   var server = http.createServer(app);
+
+  /**
+   * Listen on provided port, on all network interfaces.
+   */
+
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
 }
 
 
@@ -45,14 +53,16 @@ if(cluster.isMaster){
 //  */
 //
 // var server = http.createServer(app);
+//
+//
+// /**
+//  * Listen on provided port, on all network interfaces.
+//  */
+//
+// server.listen(port);
+// server.on('error', onError);
+// server.on('listening', onListening);
 
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
