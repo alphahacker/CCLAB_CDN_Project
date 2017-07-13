@@ -7,14 +7,17 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var flow = require('finally');
 var Promise = require('promise');
-var aws = require('aws-sdk');
-var multerS3 = require('multer-s3');
-aws.config.update({
-secretAccessKey: '4n/EzMX8nTcTOG3LQSCvwUzSGs2J+D+Vte7TY6tL',
-accessKeyId: 'AKIAJPACEPUSNEAEQOPA',
-region: 'ap-northeast-2'
-});
-var s3 = new aws.S3();
+
+// var aws = require('aws-sdk');
+// var multerS3 = require('multer-s3');
+// aws.config.update({
+// secretAccessKey: '4n/EzMX8nTcTOG3LQSCvwUzSGs2J+D+Vte7TY6tL',
+// accessKeyId: 'AKIAJPACEPUSNEAEQOPA',
+// region: 'ap-northeast-2'
+// });
+// var s3 = new aws.S3();
+
+//----------------------------------------------------------------//
 
 var dbPool = require('./src/db.js');
 var redisPool = require('./src/caching.js');
@@ -32,6 +35,34 @@ var timeline = require('./routes/timeline');
 //----------------------------------------------------------------//
 
 var app = express();
+
+//----------------------------------------------------------------//
+//node.js cluster
+
+var cluster = require('cluster');
+var numCPUs = require('os').cpus().length;
+
+if(cluster.isMaster){
+  for(var i=0; i<numCPUs; i++){
+    cluster.fork();
+  }
+  cluster.on('exit', function(worker, code, signal){
+    console.log('worker ' + worker.process.pid + ' is dead');
+
+    //서버가 죽었을 시 프로세스 자동 추가 실행 또는 알아서 알람 sms나 이메일등 모니터링 알림 처리 하는 부분, 여기.
+    cluster.fork();
+  })
+} else {
+  //Workers can share any TCP connection
+  //In this case its a HTTP server
+  console.log(" worker = " + process.pid);
+  app.set('port', process.env.PORT || 80);
+  var server = app.listen(app.get('port'), function(){
+    console.log('Express server listening on port ' + server.address().port);
+  });
+}
+
+//----------------------------------------------------------------//
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

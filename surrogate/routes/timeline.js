@@ -22,6 +22,11 @@ var app = express();
 //---------------------------------------------------------------------------//
 
 //Get each user's timeline contents
+router.get('/test', function(req, res, next) {
+  console.log("process pid : " + process.pid);
+});
+
+//Get each user's timeline contents
 router.get('/:userId', function(req, res, next) {
 
   /* Read 할때 Cache hit 측정해줘야 한다. */
