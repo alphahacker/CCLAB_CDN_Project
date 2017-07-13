@@ -26,6 +26,19 @@ router.get('/test', function(req, res, next) {
   console.log("process pid : " + process.pid);
 });
 
+router.get('/test2/:userId', function(req, res, next) {
+  console.log("=============================");
+  console.log("process pid = " + process.pid);
+  console.log("user ID = " + req.params.userId);
+
+  var key = req.params.userId;
+  redisPool.socialMemory.get(key, function (err, result) {
+      if(err) console.log("get social memory error!");
+      console.log("social memory = " + result);
+      console.log("=============================");
+  });
+});
+
 //Get each user's timeline contents
 router.get('/:userId', function(req, res, next) {
 
