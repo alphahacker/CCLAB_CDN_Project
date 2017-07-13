@@ -49,6 +49,9 @@ var util = {
     else if (thisServerIp == '165.132.104.208') {
         serverLocation = 'texas';
     }
+    else if (thisServerIp == '165.132.104.194') {
+        serverLocation = 'texas';
+    }
     else if (thisServerIp == '165.132.104.209') {
         serverLocation = 'washington';
     }
