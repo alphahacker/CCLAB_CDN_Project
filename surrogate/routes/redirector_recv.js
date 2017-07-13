@@ -100,7 +100,7 @@ router.post('/', function(req, res, next) {
         res.json({
           "result" : "redirection completed"
         })
-        console.log("response is done");
+        //console.log("response is done");
         resolved();
       })
     })

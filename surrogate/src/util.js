@@ -38,7 +38,7 @@ var util = {
   getServerLocation : function () {
     var serverLocation;
     var thisServerIp = util.serverIp();
-    console.log("this server ip : " + thisServerIp);
+    //console.log("this server ip : " + thisServerIp);
 
     if(thisServerIp == '192.168.0.8') { //test
         serverLocation = 'newyork';
@@ -56,7 +56,7 @@ var util = {
         console.log("Wrong access IP!");
     }
 
-    console.log("server location : " + serverLocation);
+    //console.log("server location : " + serverLocation);
     return serverLocation;
   }
 }
