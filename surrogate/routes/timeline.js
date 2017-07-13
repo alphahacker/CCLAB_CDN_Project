@@ -42,6 +42,12 @@ router.get('/test2/:userId', function(req, res, next) {
 //Get each user's timeline contents
 router.get('/:userId', function(req, res, next) {
 
+
+  console.log("=============================");
+  console.log("(GET) process pid = " + process.pid);
+  console.log("=============================");
+
+
   /* Read 할때 Cache hit 측정해줘야 한다. */
 
   //key는 사용자 ID
@@ -194,9 +200,9 @@ router.get('/:userId', function(req, res, next) {
 router.post('/:userId', function(req, res, next) {
 
   console.log("=============================");
-  console.log("process pid = " + process.pid);
+  console.log("(POST) process pid = " + process.pid);
   console.log("=============================");
-  
+
   var tweetObjectList = [];
 
   //2. 친구들 리스트 뽑아서
