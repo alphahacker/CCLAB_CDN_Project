@@ -193,6 +193,10 @@ router.get('/:userId', function(req, res, next) {
 //Post a content to users' timelines
 router.post('/:userId', function(req, res, next) {
 
+  console.log("=============================");
+  console.log("process pid = " + process.pid);
+  console.log("=============================");
+  
   var tweetObjectList = [];
 
   //2. 친구들 리스트 뽑아서

@@ -13,6 +13,8 @@ var app = require('../app');
 var debug = require('debug')('abuba:server');
 var http = require('http');
 
+cluster.schedulingPolicy = cluster.SCHED_RR;
+
 if(cluster.isMaster){
   for(var i=0; i<numCPUs; i++){
     cluster.fork();
