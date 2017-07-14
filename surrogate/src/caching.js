@@ -2,10 +2,17 @@ var redis = require('redis');
 
 var redisClient = {};
 
-redisClient.indexMemory = redis.createClient(1234, '127.0.0.1');
-redisClient.dataMemory = redis.createClient(1235, '127.0.0.1');
-redisClient.socialMemory = redis.createClient(1236, '127.0.0.1');
-redisClient.locationMemory = redis.createClient(1237, '127.0.0.1');
+// redisClient.indexMemory = redis.createClient(1234, '127.0.0.1');
+// redisClient.dataMemory = redis.createClient(1235, '127.0.0.1');
+// redisClient.socialMemory = redis.createClient(1236, '127.0.0.1');
+// redisClient.locationMemory = redis.createClient(1237, '127.0.0.1');
+
+redisClient.connectClients = function (redisIp) {
+  redisClient.indexMemory = redis.createClient(1234, redisIp);
+  redisClient.dataMemory = redis.createClient(1235, redisIp);
+  redisClient.socialMemory = redis.createClient(1236, redisIp);
+  redisClient.locationMemory = redis.createClient(1237, redisIp);
+}
 
 redisClient.flushMemory = function () {
   redisClient.indexMemory.flushdb( function (err, succeeded) {

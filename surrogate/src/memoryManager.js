@@ -173,6 +173,8 @@ var memoryManager = {
 						}
 						if(result == undefined || result == null){
 							error_log.info("fail to push the content from data memory in redis! : result == undefined or result == null");
+							error_log.info("user contents (indexes(keys)) : " + userContents);
+							error_log.info("this key : " + key);
 							error_log.info();
 							return false;
 						}
