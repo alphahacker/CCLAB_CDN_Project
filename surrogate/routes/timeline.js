@@ -21,9 +21,22 @@ var app = express();
 
 //---------------------------------------------------------------------------//
 
-//Get each user's timeline contents
 router.get('/test', function(req, res, next) {
   console.log("process pid : " + process.pid);
+
+  res.json({
+    "status" : "complete"
+  })
+
+});
+
+router.post('/test', function(req, res, next) {
+  console.log("process pid : " + process.pid);
+  console.log("req.body.test = " + req.body.test);
+  res.json({
+    "status" : "complete"
+  })
+
 });
 
 router.get('/test2/:userId', function(req, res, next) {
@@ -36,7 +49,12 @@ router.get('/test2/:userId', function(req, res, next) {
       if(err) console.log("get social memory error!");
       console.log("social memory = " + result);
       console.log("=============================");
+
+      res.json({
+        "status" : "complete"
+      })
   });
+
 });
 
 //Get each user's timeline contents
