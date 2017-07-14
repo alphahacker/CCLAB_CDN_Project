@@ -143,5 +143,8 @@ class Scheduler:
         Log.debug("Start to send data to Surrogate Server")
         nTotalOperation = nextJobToWork
         surrogate = Surrogate()
+
         for i in range(0, nTotalOperation):
             surrogate.commWithSurrogate(dstIPAddress, self.userID)
+            delay = random.randrange(1, 6)
+            time.sleep(delay / 10)
