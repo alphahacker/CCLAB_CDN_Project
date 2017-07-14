@@ -8,6 +8,7 @@ var redisClient = {};
 // redisClient.locationMemory = redis.createClient(1237, '127.0.0.1');
 
 redisClient.connectClients = function (redisIp) {
+  console.log("redis ip = " + redisIp);
   redisClient.indexMemory = redis.createClient(1234, redisIp);
   redisClient.dataMemory = redis.createClient(1235, redisIp);
   redisClient.socialMemory = redis.createClient(1236, redisIp);

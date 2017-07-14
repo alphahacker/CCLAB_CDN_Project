@@ -77,6 +77,7 @@ var init = function() {
     var promise = new Promise(function(resolved, rejected){
       var redisIp;
       var thisServerIp = util.serverIp();
+      console.log("This server IP = " + thisServerIp);
       if(thisServerIp == '165.132.104.210') {
           redisIp = '165.132.104.210';
       }
