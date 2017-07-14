@@ -15,18 +15,18 @@ var memoryManager = {
 		var userId = tweetObject.userId;
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
-				interim_log.info("[User Id]= " + userId);
+				//interim_log.info("[User Id]= " + userId);
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
 				if(currRemainMemory >= 0){
-					interim_log.info("[Current remain memory > 0] = " + currRemainMemory);
-					interim_log.info();
+					//interim_log.info("[Current remain memory > 0] = " + currRemainMemory);
+					//interim_log.info();
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
 						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
 				}
 				else{
 					var promise = new Promise(function(resolved, rejected){
-						interim_log.info("[Current remain memory < 0] = " + currRemainMemory);
+						//interim_log.info("[Current remain memory < 0] = " + currRemainMemory);
 						//1. 해당 유저의 index 메모리 값들 가지고 오기
 						memoryManager.getUserIndexMemory(userId, function(userContents){
 							resolved(userContents);
@@ -39,7 +39,7 @@ var memoryManager = {
 							//2. 추출되어야하는 데이터 리스트 가지고 오기
 							var extractedIndexList = [];
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
-								interim_log.info("[Extracted Index List] = " + extractedIndexList);
+								//interim_log.info("[Extracted Index List] = " + extractedIndexList);
 								resolved(extractedIndexList);
 							});
 						})
@@ -62,9 +62,9 @@ var memoryManager = {
 												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
 												memoryManager.setUserMemory(userId, updatedMemory, function(){
 													if(j == (extractedIndexList.length - 1)) {
-														interim_log.info("[Deleted Successfully] currRemainMemory = " + currRemainMemory
-																																+ ", extractedList[" + j + "].data.length = " + extractedIndexList[j].data.length
-																															 	+ ", updatedMemory = " + updatedMemory);
+														//interim_log.info("[Deleted Successfully] currRemainMemory = " + currRemainMemory
+														//																		+ ", extractedList[" + j + "].data.length = " + extractedIndexList[j].data.length
+														//																	 	+ ", updatedMemory = " + updatedMemory);
 														memoryManager.setDataInMemory(tweetObject, updatedMemory);
 														resolved();
 													}
@@ -172,10 +172,10 @@ var memoryManager = {
 							error_log.info();
 						}
 						if(result == undefined || result == null){
-							error_log.info("fail to push the content from data memory in redis! : result == undefined or result == null");
-							error_log.info("user contents (indexes(keys)) : " + userContents);
-							error_log.info("this key : " + key);
-							error_log.info();
+							//error_log.info("fail to push the content from data memory in redis! : result == undefined or result == null");
+							//error_log.info("user contents (indexes(keys)) : " + userContents);
+							//error_log.info("this key : " + key);
+							//error_log.info();
 							return false;
 						}
 						else {
@@ -216,38 +216,3 @@ var memoryManager = {
 };
 
 module.exports = memoryManager;
-
-
-// 	console.log("current remain memory < 0 : " + currRemainMemory);
-//
-// 	//1. 해당 유저의 index 메모리 값들 가지고 오기
-// 	memoryManager.getUserIndexMemory(userId, function(userContents){
-//
-// 		//2. 추출되어야하는 데이터 리스트 가지고 오기
-// 		var extractedIndexList = [];
-// 		memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
-//
-// 			console.log("extractedIndexList:");
-// 			console.log(extractedIndexList);
-//
-// 			//3. 해당 인덱스의 데이터를 data memory에서 삭제 (extractedIndexList 길이만큼 반복)
-// 			for(var i=0; i<extractedIndexList.length; i++){
-// 				var removeData = function(j){
-// 					console.log("delete " + j + "th element of extractedIndexList");
-// 					redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
-// 						 if (response == 1) {
-// 								var updatedMemory;
-// 								updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-// 								console.log("update memory " + j + "th element of extractedIndexList");
-// 								memoryManager.setUserMemory(userId, updatedMemory);
-// 								console.log("Deleted Successfully!");
-// 						 } else{
-// 							console.log("Cannot delete");
-// 						 }
-// 					})
-// 				}(i);
-// 			}
-// 		});
-// 		console.log("extracted index list : " + extractedIndexList);
-// 	});
-// }
