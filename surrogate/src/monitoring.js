@@ -1,5 +1,11 @@
 var coord = require('./coord.js');
 
+var log4js = require('log4js');
+log4js.configure('./configure/log4js.json');
+var operation_log = log4js.getLogger("operation");
+var error_log = log4js.getLogger("error");
+var interim_log = log4js.getLogger("interim");
+
 var monitoring = {
   getCacheHitRatio : function () {
     return (monitoring.cacheHit/(monitoring.cacheHit + monitoring.cacheMiss));
@@ -24,7 +30,9 @@ var monitoring = {
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     var d = R * c; // Distance in km
 
-    console.log("distance (user, surrogate server)= " + d);
+    interim_log.debug("distance (user, surrogate server)= " + d);
+    interim_log.debug();
+
     var latency_delay = 0;  //ms
     if(d==0){
       latency_delay = 20;

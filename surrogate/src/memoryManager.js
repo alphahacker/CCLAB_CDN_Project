@@ -7,6 +7,7 @@ var log4js = require('log4js');
 log4js.configure('./configure/log4js.json');
 var operation_log = log4js.getLogger("operation");
 var error_log = log4js.getLogger("error");
+var interim_log = log4js.getLogger("interim");
 
 var memoryManager = {
 	checkMemory : function(tweetObject) {
@@ -14,23 +15,18 @@ var memoryManager = {
 		var userId = tweetObject.userId;
 		try{
 			memoryManager.getUserMemory(userId, function(remainUserMemory){
-				operation_log.info();
-				operation_log.info("[User Id]= " + userId);
-				//console.log("!!!! user : " + userId);
+				interim_log.info("[User Id]= " + userId);
 				var currRemainMemory = parseInt(remainUserMemory) - parseInt(dataSize);
-
 				if(currRemainMemory >= 0){
-					//console.log("current remain memory > 0 : " + currRemainMemory);
-					operation_log.info("Current remain memory > 0 : " + currRemainMemory);
-					//operation_log.info("Operation_log Test - in memoryManager");
+					interim_log.info("[Current remain memory > 0] = " + currRemainMemory);
+					interim_log.info();
 					memoryManager.setUserMemory(userId, currRemainMemory, function(){
 						memoryManager.setDataInMemory(tweetObject, currRemainMemory);
 					});
 				}
 				else{
 					var promise = new Promise(function(resolved, rejected){
-						operation_log.info("Current remain memory < 0 : " + currRemainMemory);
-						//console.log("current remain memory < 0 : " + currRemainMemory);
+						interim_log.info("[Current remain memory < 0] = " + currRemainMemory);
 						//1. 해당 유저의 index 메모리 값들 가지고 오기
 						memoryManager.getUserIndexMemory(userId, function(userContents){
 							resolved(userContents);
@@ -42,13 +38,8 @@ var memoryManager = {
 						return new Promise(function(resolved, rejected){
 							//2. 추출되어야하는 데이터 리스트 가지고 오기
 							var extractedIndexList = [];
-							//console.log("userContents["+userId+"]:");
-							//console.log(userContents);
 							memoryManager.getExtIndexList(userContents, extractedIndexList, currRemainMemory, function(){
-								//console.log("extractedIndexList ["+userId+"]:");
-								//console.log("length1:"+extractedIndexList.length);
-								//console.log(extractedIndexList);
-								//rejected();
+								interim_log.info("[Extracted Index List] = " + extractedIndexList);
 								resolved(extractedIndexList);
 							});
 						})
@@ -57,22 +48,23 @@ var memoryManager = {
 					})
 					.then(function(extractedIndexList){
 						return new Promise(function(resolved, rejected){
-							//console.log("length2:"+extractedIndexList.length);
 							for(var i=0; i<extractedIndexList.length; i++){
 								var removeData = function(j){
-									//console.log("delete " + j + "th element of extractedIndexList");
-									//console.log("extractedIndexList["+j+"].index = " + extractedIndexList[j].index);
 									redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
-										if(err)	{ rejected("delete data error!! "); }
+										if(err)	{
+											error_log.info("delete data error! : " + err);
+											error_log.info("key : " + extractedIndexList[j].index);
+											error_log.info();
+											rejected("delete data error!! ");
+										}
 										else {
 												var updatedMemory;
 												updatedMemory = currRemainMemory + extractedIndexList[j].data.length;
-												//console.log("update memory " + j + "th element of extractedIndexList");
-												//console.log("updatedMemory = " + updatedMemory);
-												//console.log("user id = " + userId);
 												memoryManager.setUserMemory(userId, updatedMemory, function(){
 													if(j == (extractedIndexList.length - 1)) {
-														console.log("Deleted Successfully!");
+														interim_log.info("[Deleted Successfully] currRemainMemory = " + currRemainMemory
+																																+ ", extractedList[" + j + "].data.length = " + extractedIndexList[j].data.length
+																															 	+ ", updatedMemory = " + updatedMemory);
 														memoryManager.setDataInMemory(tweetObject, updatedMemory);
 														resolved();
 													}
@@ -84,13 +76,13 @@ var memoryManager = {
 						})
 					}, function(err){
 							console.log(err);
-							error_log.info("delete data error! : " + err);
 					})
 				} // end else
 			})
 		} catch (e) {
 			console.log("get user memory error! : " + e);
 			error_log.info("get user memory error! : " + e);
+			error_log.info();
 		}
 	},
 
@@ -109,18 +101,17 @@ var memoryManager = {
 				      var query_stmt = 'SELECT * FROM ' + util.getServerLocation() + ' WHERE id = "' + key + '"';
 				      conn.query(query_stmt, function(err, rows) {
 		  			      if(err) {
-						         console.log("db err");
-										 error_log.info("db err");
+										 error_log.info("fail to get user memory from MySQL : " + err);
+										 error_log.info("QUERY STMT = " + query_stmt);
+										 error_log.info();
 					        }
 					        else {
 						          //3. 없으면 디비에 가져와서 캐쉬에 올리고 리턴
 						          var value = JSON.stringify(rows[0]);
-											//value *= config.totalMemory;
 											value = (value * config.totalMemory);
 											remainMemory = value;
 						          redisPool.socialMemory.set(key, value, function (err) {
-							            //console.log("!!! reset data in social memory (cuz, there's no in redis) : " + value);
-													operation_log.info("!!! reset data in social memory (cuz, there's no in redis) : " + value);
+													operation_log.info("!!! Reset data in social memory (cuz, there's no in redis) : " + value);
 													conn.release();
 													cb(remainMemory);
 						          });
@@ -131,7 +122,6 @@ var memoryManager = {
 		    else {
 		      //2-2. 있으면 가져와서 리턴
 					cb(remainMemory);
-					//return remainMemory;
 		    }
 		  })
   },
@@ -141,8 +131,11 @@ var memoryManager = {
 		var key = userId;
 		var value = currMemory;
 		redisPool.socialMemory.set(key, value, function (err) {
-				if(err) error_log.info("fail to update the social memory in Redis");
-				//console.log("now, user [" + userId + "]'s memory : " + value);
+				if(err){
+					error_log.info("fail to update the social memory in Redis : " + err);
+					error_log.info("key (userId) : " + key + ", value (currMemory) : " + value);
+					error_log.info();
+				}
 				cb();
 		});
   },
@@ -155,24 +148,32 @@ var memoryManager = {
 		var start = 0;
 		var end = -1;
 		redisPool.indexMemory.lrange(key, start, end, function (err, result) {
-				if(err) error_log.info("fail to get the user index memory contents in redis!");
+				if(err){
+					error_log.info("fail to get the user index memory contents in redis! : " + err);
+					error_log.info("key (userId) : " + key + ", start : " + start + ", end : " + end);
+					error_log.info();
+				}
 				contentList = result;
 				cb(contentList);
 		});
-		//return contentList;
 	},
 
 	//추출되어야 하는 데이터 리스트
 	getExtIndexList : function(userContents, extractedIndexList, currRemainMemory, cb){
-		//console.log("userContents.length = " + userContents.length);
 		var updatedMemory = currRemainMemory;
 		var breakFlag = false;
 		for(var i=userContents.length-1; i>=0; i--){
 			var eachContent = function (index) {
 				var key = userContents[index];
 				redisPool.dataMemory.get(key, function (err, result) {
-						if(err) error_log.info("fail to push the content from data memory in redis! ");
+						if(err){
+							error_log.info("fail to push the content from data memory in redis! : " + err);
+							error_log.info("key : " + key);
+							error_log.info();
+						}
 						if(result == undefined || result == null){
+							error_log.info("fail to push the content from data memory in redis! : result == undefined or result == null");
+							error_log.info();
 							return false;
 						}
 						else {
@@ -202,7 +203,11 @@ var memoryManager = {
 			 var key = tweetObject.contentId;
 			 var value = tweetObject.content;
 			 redisPool.dataMemory.set(key, value, function (err) {
-					 if(err) rejected("fail to push the content into friend's data memory in Redis");
+					 if(err){
+						 error_log.info("fail to push the content into friend's data memory in Redis : " + err);
+						 error_log.info("key (tweetObject.contentId) : " + key + ", value (tweetObject.content) : " + value);
+						 error_log.info();
+					 }
 			 });
 		 }
 	 }

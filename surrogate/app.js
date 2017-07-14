@@ -7,14 +7,17 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var flow = require('finally');
 var Promise = require('promise');
-var aws = require('aws-sdk');
-var multerS3 = require('multer-s3');
-aws.config.update({
-secretAccessKey: '4n/EzMX8nTcTOG3LQSCvwUzSGs2J+D+Vte7TY6tL',
-accessKeyId: 'AKIAJPACEPUSNEAEQOPA',
-region: 'ap-northeast-2'
-});
-var s3 = new aws.S3();
+
+// var aws = require('aws-sdk');
+// var multerS3 = require('multer-s3');
+// aws.config.update({
+// secretAccessKey: '4n/EzMX8nTcTOG3LQSCvwUzSGs2J+D+Vte7TY6tL',
+// accessKeyId: 'AKIAJPACEPUSNEAEQOPA',
+// region: 'ap-northeast-2'
+// });
+// var s3 = new aws.S3();
+
+//----------------------------------------------------------------//
 
 var dbPool = require('./src/db.js');
 var redisPool = require('./src/caching.js');
@@ -33,10 +36,12 @@ var timeline = require('./routes/timeline');
 
 var app = express();
 
+//----------------------------------------------------------------//
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(cookieParser());
@@ -59,6 +64,7 @@ var init = function() {
     monitoring.cacheMiss = 0;
     monitoring.traffic = 0;
     monitoring.readCount = 0;
+    monitoring.writeCount = 0;
 
     /* db 에서 각 사용자에게 할당된 메모리 양 가지고 오기 */
 
@@ -84,18 +90,6 @@ var init = function() {
         //이때 현재 서버의 IP에 따라 어떤 테이블의 내용을 넣을지 결정해야한다.
         //예를들어, newyork에 있는 서버라면, newyork 테이블의 내용을 가져와야함.
         serverLocation = util.getServerLocation();
-
-        // var thisServerIp = util.serverIp();
-        // console.log("this server ip : " + thisServerIp);
-        // if(thisServerIp == '192.168.0.8') {
-        //     serverLocation = 'newyork';
-        // }
-        // else if (thisServerIp == '165.132.120.244') {
-        //     console.log("Wrong access IP!");
-        // }
-        // else {
-        //     console.log("Wrong access IP!");
-        // }
         resolved();
       })
     }, function(err){
@@ -140,7 +134,7 @@ var init = function() {
             var value = MAX_MEMORY * result[i].friendPortion;
             redisPool.socialMemory.set(key, value, function (err) {
                 if(err) rejected("fail to initialize the social memory in Redis");
-                console.log("["+ i +"] key : " + key + ", value : " + value);
+                //console.log("["+ i +"] key : " + key + ", value : " + value);
                 setSocialMemoryInRedis(i+1, callback);
             });
           }
@@ -211,20 +205,6 @@ var init = function() {
     }, function(err){
         console.log(err);
     })
-
-    // .then(function(){
-    //   return new Promise(function(resolved, rejected){
-    //
-    //     for(var i=0; i<allUsersContents.length; i++){
-    //       var listTest = function(index){
-    //         console.log(allUsersContents[index]);
-    //       }(i);
-    //     }
-    //   })
-    // }, function(err){
-    //     console.log(err);
-    // })
-
     .then(function(){
       return new Promise(function(resolved, rejected){
         setIndexMemoryInRedis = function(i, callback){
@@ -239,8 +219,6 @@ var init = function() {
                 var value = contentList[contentIndex];
                 redisPool.indexMemory.lpush(key,value, function (err) {
                     if(err) rejected("fail to set the index memory in Redis");
-                    // console.log("["+ i +"] key : " + key + ", value : " + value);
-                    // setIndexMemoryInRedis(i+1, callback);
                 });
               }(j);
             }
@@ -299,7 +277,7 @@ var init = function() {
             var value = userLocations[i].userLocation;
             redisPool.locationMemory.set(key, value, function (err) {
                 if(err) rejected("fail to initialize user location memory in Redis");
-                console.log("["+ i +"] key : " + key + ", value : " + value);
+                //console.log("["+ i +"] key : " + key + ", value : " + value);
                 setUserLocationInRedis(i+1, callback);
             });
           }
@@ -347,18 +325,6 @@ var init = function() {
     }, function(err){
         console.log(err);
     })
-
-    // .then(function(){
-    //   return new Promise(function(resolved, rejected){
-    //     console.log("NEWYORK : " + coord['NEWYORK'].lat + ", " + coord['NEWYORK'].lng);
-    //     console.log("VIRGINIA : " + coord['VIRGINIA'].lat + ", " + coord['VIRGINIA'].lng);
-    //     console.log("CHICAGO : " + coord['CHICAGO'].lat + ", " + coord['CHICAGO'].lng);
-    //     console.log("RHODE : " + coord['RHODE'].lat + ", " + coord['RHODE'].lng);
-    //   })
-    // }, function(err){
-    //     console.log(err);
-    // })
-
     .then(function(){
       return new Promise(function(resolved, rejected){
         console.log("coord information ready");
@@ -367,7 +333,6 @@ var init = function() {
     }, function(err){
         console.log(err);
     })
-
     .then(function(){
       return new Promise(function(resolved, rejected){
         console.log("surrogate server [" + serverLocation + "] is ready, completely.");
@@ -376,26 +341,6 @@ var init = function() {
     }, function(err){
         console.log(err);
     })
-
-/*
-    .then(function(){
-      return new Promise(function(resolved, rejected){
-        var key = 'collay26';
-        var start = 0;
-        var end = 2;
-        redisPool.indexMemory.lrange(key, start, end, function (err, result) {
-            if(err) rejected("fail to set the index memory in Redis");
-            // console.log("["+ i +"] key : " + key + ", value : " + value);
-            // setIndexMemoryInRedis(i+1, callback);
-            console.log(result);
-        });
-        resolved();
-      })
-    }, function(err){
-        console.log(err);
-    })
-*/
-
 }();
 
 //----------------------------------------------------------------//
