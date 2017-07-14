@@ -60,12 +60,6 @@ router.get('/test2/:userId', function(req, res, next) {
 //Get each user's timeline contents
 router.get('/:userId', function(req, res, next) {
 
-
-  console.log("=============================");
-  console.log("(GET) process pid = " + process.pid);
-  console.log("=============================");
-
-
   /* Read 할때 Cache hit 측정해줘야 한다. */
 
   //key는 사용자 ID
@@ -216,10 +210,6 @@ router.get('/:userId', function(req, res, next) {
 
 //Post a content to users' timelines
 router.post('/:userId', function(req, res, next) {
-
-  console.log("=============================");
-  console.log("(POST) process pid = " + process.pid);
-  console.log("=============================");
 
   var tweetObjectList = [];
 
