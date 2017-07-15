@@ -13,6 +13,13 @@ var app = require('../app');
 var debug = require('debug')('abuba:server');
 var http = require('http');
 
+//log
+var log4js = require('log4js');
+log4js.configure('./configure/log4js.json');
+var operation_log = log4js.getLogger("operation");
+var error_log = log4js.getLogger("error");
+
+
 //cluster.schedulingPolicy = cluster.SCHED_RR;
 
 if(cluster.isMaster){
@@ -20,10 +27,11 @@ if(cluster.isMaster){
     cluster.fork();
   }
   cluster.on('exit', function(worker, code, signal){
-    console.log('worker ' + worker.process.pid + ' is dead');
+    //sconsole.log('worker ' + worker.process.pid + ' is dead');
 
     //서버가 죽었을 시 프로세스 자동 추가 실행 또는 알아서 알람 sms나 이메일등 모니터링 알림 처리 하는 부분, 여기.
-    cluster.fork();
+    //cluster.fork(); // <-- 다시 살리지 말자.
+    error_log.info(" =================== !!! Process is dead !!! =================== ");
   })
 } else {
   //Workers can share any TCP connection

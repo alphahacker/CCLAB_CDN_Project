@@ -109,13 +109,22 @@ router.get('/:userId', function(req, res, next) {
               conn.query(query_stmt, function(err, result) {
                   if(err){
                     error_log.info("fail to get user location from MySQL! : " + err);
-                    error_log.info("key (userId) : " + key);
-                    error_log.info();
+                    error_log.info("key (userId) : " + key + "\ㅜn");
+
+                    conn.release(); //MySQL connection release
                     rejected("fail to get user location from MySQL!");
                   }
-                  userLocation = result[0].userLocation;
-                  resolved(contentIndexList);
-                  conn.release(); //MySQL connection release
+                  if(result == undefined || result == null){
+                    error_log.info("fail to get user location from MySQL! : There is no result.");
+                    error_log.info("key (userId) : " + key + "\ㅜn");
+
+                    conn.release(); //MySQL connection release
+                    rejected("fail to get user location from MySQL!");
+                  } else {
+                    userLocation = result[0].userLocation;
+                    resolved(contentIndexList);
+                    conn.release(); //MySQL connection release
+                  }
               })
             });
           }
@@ -234,49 +243,6 @@ router.post('/:userId', function(req, res, next) {
   });
 
   //3-1. origin server에 있는 mysql의 content에 모든 친구들에 대해서 데이터를 넣는다. 이 때, lastInsertId를 이용해서 contentId를 만듦.
-  //promise
-  // .then(function(friendList){
-  //   return new Promise(function(resolved, rejected){
-  //     pushTweetInOriginDB = function(i, callback){
-  //       if(i >= friendList.length){
-  //         callback();
-  //       } else {
-  //         dbPool.getConnection(function(err, conn) {
-  //             var query_stmt = 'INSERT INTO content (uid, message) SELECT id, "' + req.body.contentData
-  //                           + '" FROM user WHERE userId = "' + friendList[i] + '"';
-  //             conn.query(query_stmt, function(err, result) {
-  //                 if(err) {
-  //                    error_log.debug("Query Stmt = " + query_stmt);
-  //                    error_log.debug("ERROR MSG = " + err);
-  //                    rejected("DB err!");
-  //                 }
-  //
-  //                 conn.release(); //MySQL connection release
-  //
-  //                 if(result == undefined || result == null){
-  //                     operation_log.debug("Query Stmt = " + query_stmt);
-  //                     operation_log.debug("Query Result = " + result);
-  //                 }
-  //                 else {
-  //                   var tweetObject = {};
-  //                   tweetObject.userId = friendList[i];
-  //                   tweetObject.contentId = Number(result.insertId);
-  //                   tweetObject.content = req.body.contentData;
-  //                   tweetObjectList.push(tweetObject);
-  //                 }
-  //                 pushTweetInOriginDB(i+1, callback);
-  //             })
-  //         });
-  //       }
-  //     }
-  //
-  //     pushTweetInOriginDB(0, function(){
-  //       resolved();
-  //     })
-  //   })
-  // }, function(err){
-  //     console.log(err);
-  // })
   promise
   .then(function(friendList){
     return new Promise(function(resolved, rejected){
@@ -336,34 +302,6 @@ router.post('/:userId', function(req, res, next) {
   })
 
   //3-2. origin server에 있는 mysql의 timeline에, 모든 친구들에 대해서 데이터를 넣는다.
-  // .then(function(){
-  //   return new Promise(function(resolved, rejected){
-  //     pushIndexInOriginDB = function(i, callback){
-  //       if(i >= tweetObjectList.length){
-  //         callback();
-  //       } else {
-  //         dbPool.getConnection(function(err, conn) {
-  //             var query_stmt = 'INSERT INTO timeline (uid, contentId) SELECT id, ' + tweetObjectList[i].contentId
-  //                           + ' FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
-  //             conn.query(query_stmt, function(err, result) {
-  //                 if(err) {
-  //                    rejected("DB err!");
-  //                 }
-  //
-  //                 conn.release(); //MySQL connection release
-  //                 pushIndexInOriginDB(i+1, callback);
-  //             })
-  //         });
-  //       }
-  //     }
-  //
-  //     pushIndexInOriginDB(0, function(){
-  //       resolved();
-  //     })
-  //   })
-  // }, function(err){
-  //     console.log(err);
-  // })
   .then(function(){
     return new Promise(function(resolved, rejected){
       pushIndexInOriginDB = function(i, callback){
@@ -392,8 +330,8 @@ router.post('/:userId', function(req, res, next) {
                              rejected("DB err!");
                           }
                           if(result == undefined || result == null){
-                              operation_log.debug("Query Stmt = " + query_stmt2);
-                              operation_log.debug("Query Result = " + result);
+                              error_log.debug("Query Stmt = " + query_stmt2);
+                              error_log.debug("Query Result = " + result);
                           }
 
                           conn.release();
@@ -477,23 +415,11 @@ router.post('/:userId', function(req, res, next) {
             baseline approach에서는 그냥, 가만히 놔두면 redis설정에 따라 오래된 애들을 우선적으로 지울듯. lru에 따라.
           */
           memoryManager.checkMemory(tweetObjectList[i]);
-          //memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId);
           pushTweetInDataMemory(i+1, callback);
-          // memoryManager.checkMemory(tweetObjectList[i].content.length, tweetObjectList[i].userId, function(expectedRemainMemory){ //파라미터로 데이터의 사이즈와 사용자의 ID를 넣어야함.
-          //   if(expectedRemainMemory >= 0){
-          //     var key = tweetObjectList[i].contentId;
-          //     var value = tweetObjectList[i].content;
-          //     redisPool.dataMemory.set(key, value, function (err) {
-          //         if(err) rejected("fail to push the content into friend's data memory in Redis");
-          //         pushTweetInDataMemory(i+1, callback);
-          //     });
-          //   }
-          // });
         }
       }
 
       pushTweetInDataMemory(0, function(){
-        //res.send("OK");
         res.json({
           "status" : "OK"
         })

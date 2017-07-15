@@ -60,8 +60,7 @@ router.post('/', function(req, res, next) {
           var value = tweetObjectList[i].contentId;
           redisPool.indexMemory.lpush(key, value, function (err) {
               if(err){
-                error_log.debug("fail to push the content into friend's index memory in Redis" + err);
-                error_log.debug();
+                error_log.debug("fail to push the content into friend's index memory in Redis" + err + "\n");
                 rejected("fail to push the content into friend's index memory in Redis");
               }
               pushTweetInIndexMemory(i+1, callback);

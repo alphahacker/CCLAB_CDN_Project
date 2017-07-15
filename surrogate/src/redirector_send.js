@@ -16,7 +16,7 @@ var redirect = {
     for(var i=0; i<ipList.length; i++){
         var deliverData = function(index){
 						if(ipList[index] != thisServerIp){
-								operation_log.info("Redirect Target IP : " + ipList[index]);
+								//operation_log.info("Redirect Target IP : " + ipList[index]);
 
                 request.post({
                     url: 'http://' + ipList[index] + '/redirector',

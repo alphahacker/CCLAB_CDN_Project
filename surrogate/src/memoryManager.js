@@ -53,8 +53,7 @@ var memoryManager = {
 									redisPool.dataMemory.del(extractedIndexList[j].index, function(err, response) {
 										if(err)	{
 											error_log.info("delete data error! : " + err);
-											error_log.info("key : " + extractedIndexList[j].index);
-											error_log.info();
+											error_log.info("key : " + extractedIndexList[j].index + "\n");
 											rejected("delete data error!! ");
 										}
 										else {
@@ -111,7 +110,7 @@ var memoryManager = {
 											value = (value * config.totalMemory);
 											remainMemory = value;
 						          redisPool.socialMemory.set(key, value, function (err) {
-													operation_log.info("!!! Reset data in social memory (cuz, there's no in redis) : " + value);
+													error_log.info("!!! Reset data in social memory (cuz, there's no in redis) : " + value);
 													conn.release();
 													cb(remainMemory);
 						          });
