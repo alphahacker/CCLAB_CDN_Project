@@ -184,11 +184,11 @@ router.get('/:userId', function(req, res, next) {
       getUserContentData(0, function(){
         readEndTime = new Date().getTime();
         operation_log.info("[Read Execution Delay]= " + (readEndTime - readStartTime) + "ms");
-        operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation) + "ms");
+        //operation_log.info("[Read Latency Delay]= " + monitoring.getLatencyDelay(util.getServerLocation(), userLocation) + "ms");
         operation_log.info("[Read Operation Count]= " + ++monitoring.readCount);
-        operation_log.info("[Read Traffic]= " + (monitoring.readCount * (end-start+1)));
-        operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
-        operation_log.info();
+        //operation_log.info("[Read Traffic]= " + (monitoring.readCount * (end-start+1)));
+        operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio() + "\n");
+        //operation_log.info();
         resolved();
       })
     })
@@ -497,9 +497,9 @@ router.post('/:userId', function(req, res, next) {
         res.json({
           "status" : "OK"
         })
-        operation_log.info("[Write Operation Count]= " + ++monitoring.writeCount);
-        operation_log.info("[Write Traffic]= " + (monitoring.writeCount * req.body.contentData.length) + "B");
-        operation_log.info();
+        operation_log.info("[Write Operation Count]= " + ++monitoring.writeCount + "\n");
+        //operation_log.info("[Write Traffic]= " + (monitoring.writeCount * req.body.contentData.length) + "B");
+        //operation_log.info();
         resolved();
       })
     })
