@@ -131,6 +131,7 @@ var init = function() {
             var query_stmt = 'SELECT * FROM ' + serverLocation;
             console.log(query_stmt);
             conn.query(query_stmt, function(err, rows) {
+                conn.release(); //MySQL connection release
                 if(err) {
                    rejected("DB err!");
                 }
@@ -140,7 +141,7 @@ var init = function() {
                         friendPortion : rows[i].friendPortion
                     });
                 }
-                conn.release(); //MySQL connection release
+                //conn.release(); //MySQL connection release
                 resolved();
             })
         });
@@ -204,6 +205,8 @@ var init = function() {
                                'ON A.uid = B.id ' +
                                'WHERE B.userId = "' + userId + '"';
               conn.query(query_stmt, function(err, rows) {
+                conn.release(); //MySQL connection release
+
                 if(err) rejected("DB err!");
 
                 for (var j=0; j<rows.length; j++) {
@@ -216,7 +219,7 @@ var init = function() {
                 }
 
                 getUsersContentsFromDB(i+1, callback);
-                conn.release(); //MySQL connection release
+                //conn.release(); //MySQL connection release
               })
             });
           }
@@ -275,6 +278,8 @@ var init = function() {
         dbPool.getConnection(function(err, conn) {
             var query_stmt = 'SELECT userId, userLocation FROM user';
             conn.query(query_stmt, function(err, rows) {
+                conn.release(); //MySQL connection release
+
                 if(err) {
                    rejected("DB err!");
                 }
@@ -284,7 +289,7 @@ var init = function() {
                         userLocation : rows[i].userLocation
                     });
                 }
-                conn.release(); //MySQL connection release
+                //conn.release(); //MySQL connection release
                 resolved();
             })
         });
@@ -333,6 +338,8 @@ var init = function() {
         dbPool.getConnection(function(err, conn) {
             var query_stmt = 'SELECT * FROM coord';
             conn.query(query_stmt, function(err, rows) {
+                conn.release(); //MySQL connection release
+
                 if(err) {
                    rejected("DB err!");
                 }
@@ -342,7 +349,7 @@ var init = function() {
                       lng : rows[i].lng
                     };
                 }
-                conn.release(); //MySQL connection release
+                //conn.release(); //MySQL connection release
                 resolved();
             })
         });
