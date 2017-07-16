@@ -131,7 +131,8 @@ var init = function() {
             var query_stmt = 'SELECT * FROM ' + serverLocation;
             console.log(query_stmt);
             conn.query(query_stmt, function(err, rows) {
-                conn.release(); //MySQL connection release
+                //conn.release(); //MySQL connection release
+                conn.end();
                 if(err) {
                    rejected("DB err!");
                 }
@@ -205,8 +206,8 @@ var init = function() {
                                'ON A.uid = B.id ' +
                                'WHERE B.userId = "' + userId + '"';
               conn.query(query_stmt, function(err, rows) {
-                conn.release(); //MySQL connection release
-
+                //conn.release(); //MySQL connection release
+                conn.end();
                 if(err) rejected("DB err!");
 
                 for (var j=0; j<rows.length; j++) {
@@ -278,8 +279,8 @@ var init = function() {
         dbPool.getConnection(function(err, conn) {
             var query_stmt = 'SELECT userId, userLocation FROM user';
             conn.query(query_stmt, function(err, rows) {
-                conn.release(); //MySQL connection release
-
+                //conn.release(); //MySQL connection release
+                conn.end();
                 if(err) {
                    rejected("DB err!");
                 }
@@ -338,8 +339,8 @@ var init = function() {
         dbPool.getConnection(function(err, conn) {
             var query_stmt = 'SELECT * FROM coord';
             conn.query(query_stmt, function(err, rows) {
-                conn.release(); //MySQL connection release
-
+                //conn.release(); //MySQL connection release
+                conn.end();
                 if(err) {
                    rejected("DB err!");
                 }
