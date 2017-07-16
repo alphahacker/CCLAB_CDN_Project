@@ -99,6 +99,8 @@ var memoryManager = {
 		      dbPool.getConnection(function(err, conn) {
 				      var query_stmt = 'SELECT * FROM ' + util.getServerLocation() + ' WHERE id = "' + key + '"';
 				      conn.query(query_stmt, function(err, rows) {
+									conn.release();
+
 		  			      if(err) {
 										 error_log.info("fail to get user memory from MySQL : " + err);
 										 error_log.info("QUERY STMT = " + query_stmt);
@@ -111,7 +113,7 @@ var memoryManager = {
 											remainMemory = value;
 						          redisPool.socialMemory.set(key, value, function (err) {
 													error_log.info("!!! Reset data in social memory (cuz, there's no in redis) : " + value);
-													conn.release();
+													//conn.release();
 													cb(remainMemory);
 						          });
 					        }
