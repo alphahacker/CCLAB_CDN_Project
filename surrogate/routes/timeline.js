@@ -337,74 +337,74 @@ router.post('/:userId', function(req, res, next) {
   })
 
   //3-2. origin server에 있는 mysql의 timeline에, 모든 친구들에 대해서 데이터를 넣는다.
-  .then(function(){
-    return new Promise(function(resolved, rejected){
-      pushIndexInOriginDB = function(i, callback){
-        if(i >= tweetObjectList.length){
-          callback();
-        } else {
-          dbPool.getConnection(function(err, conn) {
-              if(err) error_log.info("connection error = " + err);
-
-              var query_stmt = 'SELECT id FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
-              conn.query(query_stmt, function(err, result) {
-                  conn.release(); //MySQL connection release
-
-                  if(err) {
-                     error_log.debug("Query Stmt = " + query_stmt);
-                     error_log.debug("ERROR MSG = " + err);
-                     error_log.debug();
-                     //conn.release(); //MySQL connection release
-                     rejected("DB err!");
-                  }
-                  else {
-                    //conn.release(); //MySQL connection release
-                    var userPkId = result[0].id;
-                    //////////////////////////////////////////////////////////////
-                    dbPool.getConnection(function(err, conn) {
-                        if(err) error_log.info("connection error = " + err);
-
-                        var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
-                        conn.query(query_stmt2, function(err, result) {
-                            conn.release(); //MySQL connection release
-
-                            if(err) {
-                               error_log.debug("Query Stmt = " + query_stmt);
-                               error_log.debug("ERROR MSG = " + err);
-                               error_log.debug();
-                               //conn.release(); //MySQL connection release
-                               rejected("DB err!");
-                            }
-                            else {
-                              if(result == undefined || result == null){
-                                  error_log.debug("Query Stmt = " + query_stmt2);
-                                  error_log.debug("Query Result = " + result);
-                                  //conn.release(); //MySQL connection release
-                                  pushIndexInOriginDB(i+1, callback);
-                              }
-                              else {
-                                  //conn.release();
-                                  pushIndexInOriginDB(i+1, callback);
-                              }
-                            }
-
-                        });
-                    });
-                    //////////////////////////////////////////////////////////////
-                  }
-
-              })
-          });
-        }
-      }
-
-      pushIndexInOriginDB(0, function(){
-        resolved();
-      })
-    })
-  }, function(err){
-      console.log(err);
-  })
+  // .then(function(){
+  //   return new Promise(function(resolved, rejected){
+  //     pushIndexInOriginDB = function(i, callback){
+  //       if(i >= tweetObjectList.length){
+  //         callback();
+  //       } else {
+  //         dbPool.getConnection(function(err, conn) {
+  //             if(err) error_log.info("connection error = " + err);
+  // 
+  //             var query_stmt = 'SELECT id FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
+  //             conn.query(query_stmt, function(err, result) {
+  //                 conn.release(); //MySQL connection release
+  //
+  //                 if(err) {
+  //                    error_log.debug("Query Stmt = " + query_stmt);
+  //                    error_log.debug("ERROR MSG = " + err);
+  //                    error_log.debug();
+  //                    //conn.release(); //MySQL connection release
+  //                    rejected("DB err!");
+  //                 }
+  //                 else {
+  //                   //conn.release(); //MySQL connection release
+  //                   var userPkId = result[0].id;
+  //                   //////////////////////////////////////////////////////////////
+  //                   dbPool.getConnection(function(err, conn) {
+  //                       if(err) error_log.info("connection error = " + err);
+  //
+  //                       var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
+  //                       conn.query(query_stmt2, function(err, result) {
+  //                           conn.release(); //MySQL connection release
+  //
+  //                           if(err) {
+  //                              error_log.debug("Query Stmt = " + query_stmt);
+  //                              error_log.debug("ERROR MSG = " + err);
+  //                              error_log.debug();
+  //                              //conn.release(); //MySQL connection release
+  //                              rejected("DB err!");
+  //                           }
+  //                           else {
+  //                             if(result == undefined || result == null){
+  //                                 error_log.debug("Query Stmt = " + query_stmt2);
+  //                                 error_log.debug("Query Result = " + result);
+  //                                 //conn.release(); //MySQL connection release
+  //                                 pushIndexInOriginDB(i+1, callback);
+  //                             }
+  //                             else {
+  //                                 //conn.release();
+  //                                 pushIndexInOriginDB(i+1, callback);
+  //                             }
+  //                           }
+  //
+  //                       });
+  //                   });
+  //                   //////////////////////////////////////////////////////////////
+  //                 }
+  //
+  //             })
+  //         });
+  //       }
+  //     }
+  //
+  //     pushIndexInOriginDB(0, function(){
+  //       resolved();
+  //     })
+  //   })
+  // }, function(err){
+  //     console.log(err);
+  // })
 
   //4. 다른 surrogate 서버로 redirect
   .then(function(){
