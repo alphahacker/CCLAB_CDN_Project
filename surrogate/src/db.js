@@ -1,5 +1,5 @@
 var dbPool = require('mysql').createPool({
-    connectionLimit : 10,
+    connectionLimit : 200,
     host            : '165.132.104.207',  //origin server IP
     user            : 'root',
     password        : 'cclab',
