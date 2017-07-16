@@ -104,6 +104,8 @@ router.get('/:userId', function(req, res, next) {
             resolved(contentIndexList);
           } else {
             dbPool.getConnection(function(err, conn) {
+              if(err) error_log.info("connection error = " + err);
+
               var query_stmt = 'SELECT userLocation FROM user ' +
                                'WHERE userId = ' + key;
               conn.query(query_stmt, function(err, result) {
@@ -113,17 +115,18 @@ router.get('/:userId', function(req, res, next) {
 
                     conn.release(); //MySQL connection release
                     rejected("fail to get user location from MySQL!");
-                  }
-                  if(result == undefined || result == null){
-                    error_log.info("fail to get user location from MySQL! : There is no result.");
-                    error_log.info("key (userId) : " + key + "\ㅜn");
-
-                    conn.release(); //MySQL connection release
-                    rejected("fail to get user location from MySQL!");
                   } else {
-                    userLocation = result[0].userLocation;
-                    resolved(contentIndexList);
-                    conn.release(); //MySQL connection release
+                    if(result == undefined || result == null){
+                      error_log.info("fail to get user location from MySQL! : There is no result.");
+                      error_log.info("key (userId) : " + key + "\ㅜn");
+
+                      conn.release(); //MySQL connection release
+                      rejected("fail to get user location from MySQL!");
+                    } else {
+                      userLocation = result[0].userLocation;
+                      resolved(contentIndexList);
+                      conn.release(); //MySQL connection release
+                    }
                   }
               })
             });
@@ -161,6 +164,8 @@ router.get('/:userId', function(req, res, next) {
 
               } else {
                 dbPool.getConnection(function(err, conn) {
+                  if(err) error_log.info("connection error = " + err);
+
                   var query_stmt = 'SELECT message FROM content ' +
                                    'WHERE id = ' + key;
                   conn.query(query_stmt, function(err, result) {
@@ -168,21 +173,25 @@ router.get('/:userId', function(req, res, next) {
                         error_log.info("fail to get message (MySQL) : " + err);
                         error_log.info("QUERY STMT : " + query_stmt);
                         error_log.info();
+                        conn.release(); //MySQL connection release
                         rejected("DB err!");
                       }
-                      if(result){
-                        contentDataList.push(result[0].message);
-                        //console.log("cache miss!");
-                        monitoring.cacheMiss++;
-                        //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
+                      else {
+                        if(result){
+                          contentDataList.push(result[0].message);
+                          //console.log("cache miss!");
+                          monitoring.cacheMiss++;
+                          //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
 
-                      } else {
-                        error_log.error("There's no data, even in the origin mysql server!");
-                        error_log.error();
+                        } else {
+                          error_log.error("There's no data, even in the origin mysql server!");
+                          error_log.error();
+                        }
+
+                        conn.release(); //MySQL connection release
+                        getUserContentData(i+1, callback);
                       }
 
-                      conn.release(); //MySQL connection release
-                      getUserContentData(i+1, callback);
                   })
               });
             }
@@ -226,18 +235,23 @@ router.post('/:userId', function(req, res, next) {
   var promise = new Promise(function(resolved, rejected){
       var friendList = [];
       dbPool.getConnection(function(err, conn) {
+          if(err) error_log.info("connection error = " + err);
+
           var query_stmt = 'SELECT friendId FROM friendList WHERE userId = "' + req.params.userId + '"';
           conn.query(query_stmt, function(err, rows) {
               if(err) {
                 error_log.info("fail to get friendList (MySQL) : " + err);
                 error_log.info("QUERY STMT : " + query_stmt);
+                conn.release(); //MySQL connection release
                 rejected("fail to extract friend id list from origin server!");
               }
-              for (var i=0; i<rows.length; i++) {
-                  friendList.push(rows[i].friendId);
+              else {
+                for (var i=0; i<rows.length; i++) {
+                    friendList.push(rows[i].friendId);
+                }
+                conn.release(); //MySQL connection release
+                resolved(friendList);
               }
-              conn.release(); //MySQL connection release
-              resolved(friendList);
           })
       });
   });
@@ -251,43 +265,57 @@ router.post('/:userId', function(req, res, next) {
           callback();
         } else {
           dbPool.getConnection(function(err, conn) {
+              if(err) error_log.info("connection error = " + err);
+
               var query_stmt = 'SELECT id FROM user WHERE userId = "' + friendList[i] + '"'
               conn.query(query_stmt, function(err, result) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
                      error_log.debug("ERROR MSG = " + err);
                      error_log.debug();
+                     conn.release(); //MySQL connection release
                      rejected("DB err!");
                   }
-                  var userPkId = result[0].id;
-                  conn.release(); //MySQL connection release
+                  else {
+                    var userPkId = result[0].id;
+                    conn.release(); //MySQL connection release
 
-                  //////////////////////////////////////////////////////////////
-                  dbPool.getConnection(function(err, conn) {
-                      var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + userPkId + ', "' + req.body.contentData + '")'
-                      conn.query(query_stmt2, function(err, result) {
-                          if(err) {
-                             error_log.debug("Query Stmt = " + query_stmt);
-                             error_log.debug("ERROR MSG = " + err);
-                             error_log.debug();
-                             rejected("DB err!");
-                          }
-                          if(result == undefined || result == null){
-                              error_log.debug("Query Stmt = " + query_stmt2);
-                              error_log.debug("Query Result = " + result);
-                          }
-                          else {
-                            var tweetObject = {};
-                            tweetObject.userId = friendList[i];
-                            tweetObject.contentId = Number(result.insertId);
-                            tweetObject.content = req.body.contentData;
-                            tweetObjectList.push(tweetObject);
-                          }
-                          conn.release();
-                          pushTweetInOriginDB(i+1, callback);
-                      });
-                  });
-                  //////////////////////////////////////////////////////////////
+                    //////////////////////////////////////////////////////////////
+                    dbPool.getConnection(function(err, conn) {
+                        if(err) error_log.info("connection error = " + err);
+
+                        var query_stmt2 = 'INSERT INTO content (uid, message) VALUES (' + userPkId + ', "' + req.body.contentData + '")'
+                        conn.query(query_stmt2, function(err, result) {
+                            if(err) {
+                               error_log.debug("Query Stmt = " + query_stmt);
+                               error_log.debug("ERROR MSG = " + err);
+                               error_log.debug();
+                               conn.release(); //MySQL connection release
+                               rejected("DB err!");
+                            }
+                            else {
+                              if(result == undefined || result == null){
+                                  error_log.debug("Query Stmt = " + query_stmt2);
+                                  error_log.debug("Query Result = " + result);
+                                  conn.release(); //MySQL connection release
+                                  pushTweetInOriginDB(i+1, callback);
+                              }
+                              else {
+                                var tweetObject = {};
+                                tweetObject.userId = friendList[i];
+                                tweetObject.contentId = Number(result.insertId);
+                                tweetObject.content = req.body.contentData;
+                                tweetObjectList.push(tweetObject);
+                              }
+                              conn.release();
+                              pushTweetInOriginDB(i+1, callback);
+                            }
+
+                        });
+                    });
+                    //////////////////////////////////////////////////////////////
+                  }
+
               });
           });
         }
@@ -309,36 +337,51 @@ router.post('/:userId', function(req, res, next) {
           callback();
         } else {
           dbPool.getConnection(function(err, conn) {
+              if(err) error_log.info("connection error = " + err);
+
               var query_stmt = 'SELECT id FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
               conn.query(query_stmt, function(err, result) {
                   if(err) {
                      error_log.debug("Query Stmt = " + query_stmt);
                      error_log.debug("ERROR MSG = " + err);
                      error_log.debug();
+                     conn.release(); //MySQL connection release
                      rejected("DB err!");
                   }
-                  conn.release(); //MySQL connection release
-                  var userPkId = result[0].id;
-                  //////////////////////////////////////////////////////////////
-                  dbPool.getConnection(function(err, conn) {
-                      var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
-                      conn.query(query_stmt2, function(err, result) {
-                          if(err) {
-                             error_log.debug("Query Stmt = " + query_stmt);
-                             error_log.debug("ERROR MSG = " + err);
-                             error_log.debug();
-                             rejected("DB err!");
-                          }
-                          if(result == undefined || result == null){
-                              error_log.debug("Query Stmt = " + query_stmt2);
-                              error_log.debug("Query Result = " + result);
-                          }
+                  else {
+                    conn.release(); //MySQL connection release
+                    var userPkId = result[0].id;
+                    //////////////////////////////////////////////////////////////
+                    dbPool.getConnection(function(err, conn) {
+                        if(err) error_log.info("connection error = " + err);
 
-                          conn.release();
-                          pushIndexInOriginDB(i+1, callback);
-                      });
-                  });
-                  //////////////////////////////////////////////////////////////
+                        var query_stmt2 = 'INSERT INTO timeline (uid, contentId) VALUES (' + userPkId + ', ' + tweetObjectList[i].contentId + ')'
+                        conn.query(query_stmt2, function(err, result) {
+                            if(err) {
+                               error_log.debug("Query Stmt = " + query_stmt);
+                               error_log.debug("ERROR MSG = " + err);
+                               error_log.debug();
+                               conn.release(); //MySQL connection release
+                               rejected("DB err!");
+                            }
+                            else {
+                              if(result == undefined || result == null){
+                                  error_log.debug("Query Stmt = " + query_stmt2);
+                                  error_log.debug("Query Result = " + result);
+                                  conn.release(); //MySQL connection release
+                                  pushIndexInOriginDB(i+1, callback);
+                              }
+                              else {
+                                  conn.release();
+                                  pushIndexInOriginDB(i+1, callback);
+                              }
+                            }
+
+                        });
+                    });
+                    //////////////////////////////////////////////////////////////
+                  }
+
               })
           });
         }
