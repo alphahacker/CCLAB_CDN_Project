@@ -3,6 +3,7 @@ var router = express.Router();
 var bodyParser = require('body-parser');
 var redis = require('redis');
 var JSON = require('JSON');
+var heapdump = require('heapdump');
 
 var log4js = require('log4js');
 log4js.configure('./configure/log4js.json');
@@ -55,6 +56,13 @@ router.get('/test2/:userId', function(req, res, next) {
       })
   });
 
+});
+
+//Get heapdump
+router.get('/:userId', function(req, res, next) {
+  var filename = '/heapdump' + Date.now() + './heapsnapshot';
+  heapdump.writeSnapshot(filename);
+  res.send('Heapdump has been generated in ' + filename);
 });
 
 //Get each user's timeline contents
@@ -345,7 +353,7 @@ router.post('/:userId', function(req, res, next) {
   //       } else {
   //         dbPool.getConnection(function(err, conn) {
   //             if(err) error_log.info("connection error = " + err);
-  // 
+  //
   //             var query_stmt = 'SELECT id FROM user WHERE userId = "' + tweetObjectList[i].userId + '"';
   //             conn.query(query_stmt, function(err, result) {
   //                 conn.release(); //MySQL connection release

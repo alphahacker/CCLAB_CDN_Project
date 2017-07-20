@@ -16,6 +16,7 @@
     "express": "~4.13.1",
     "express-session": "^1.14.2",
     "finally": "^0.2.1",
+    "heapdump": "^0.3.9",
     "ip": "^1.1.5",
     "jade": "~1.11.0",
     "log4js": "^1.1.0",
