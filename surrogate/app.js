@@ -165,7 +165,7 @@ var init = function() {
     })
     .then(function(){
       return new Promise(function(resolved, rejected){
-        setSocialMemoryInRedis = function(i, callback){
+        var setSocialMemoryInRedis = function(i, callback){
           if(i >= result.length){
             callback();
           } else {
@@ -202,7 +202,7 @@ var init = function() {
 
     .then(function(){
       return new Promise(function(resolved, rejected){
-        getUsersContentsFromDB = function(i, callback){
+        var getUsersContentsFromDB = function(i, callback){
           var userContents = {};
 
           if(i >= result.length){
@@ -248,7 +248,7 @@ var init = function() {
     })
     .then(function(){
       return new Promise(function(resolved, rejected){
-        setIndexMemoryInRedis = function(i, callback){
+        var setIndexMemoryInRedis = function(i, callback){
           if(i >= allUsersContents.length){
             callback();
           } else {
@@ -311,7 +311,7 @@ var init = function() {
     })
     .then(function(){
       return new Promise(function(resolved, rejected){
-        setUserLocationInRedis = function(i, callback){
+        var setUserLocationInRedis = function(i, callback){
           if(i >= userLocations.length){
             callback();
           } else {

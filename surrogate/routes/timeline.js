@@ -72,7 +72,7 @@ router.get('/:userId', function(req, res, next) {
 
   //key는 사용자 ID
   //var key = req.params.userId;
-  var userLocation;
+  //var userLocation;
 
   //데이터는 한번에 20개씩 가져오도록 한다.
   var start = 0;
@@ -82,9 +82,9 @@ router.get('/:userId', function(req, res, next) {
   var contentIndexList = [];
   var contentDataList = [];
 
-  var promise = new Promise(function(resolved, rejected){
+  var promise = new Promise(function getIndexFunc(resolved, rejected){
     var key = req.params.userId;
-    redisPool.indexMemory.lrange(key, start, end, function (err, result) {
+    redisPool.indexMemory.lrange(key, start, end, function getIndexContents(err, result) {
         if(err){
           error_log.info("fail to get the index memory in Redis : " + err);
           error_log.info("key (req.params.userId) : " + key + ", start : " + start + ", end : " + end);
@@ -97,55 +97,54 @@ router.get('/:userId', function(req, res, next) {
   });
 
   promise
-  .then(function(contentIndexList){
-    return new Promise(function(resolved, rejected){
-      var key = req.params.userId;
-      redisPool.locationMemory.get(key, function (err, result) {
-          if(err){
-            error_log.info("fail to get user location from redis! : " + err);
-            error_log.info("key (req.params.userId) : " + key);
-            error_log.info();
-            rejected("fail to get user location from redis! ");
-          }
-          if(result){
-            userLocation = result;
-            resolved(contentIndexList);
-          } else {
-            dbPool.getConnection(function(err, conn) {
-              if(err) error_log.info("connection error = " + err);
-
-              var query_stmt = 'SELECT userLocation FROM user ' +
-                               'WHERE userId = ' + key;
-              conn.query(query_stmt, function(err, result) {
-                  conn.release(); //MySQL connection release
-                  if(err){
-                    error_log.info("fail to get user location from MySQL! : " + err);
-                    error_log.info("key (userId) : " + key + "\ㅜn");
-
-                    //conn.release(); //MySQL connection release
-                    rejected("fail to get user location from MySQL!");
-                  } else {
-                    if(result == undefined || result == null){
-                      error_log.info("fail to get user location from MySQL! : There is no result.");
-                      error_log.info("key (userId) : " + key + "\ㅜn");
-
-                      //conn.release(); //MySQL connection release
-                      rejected("fail to get user location from MySQL!");
-                    } else {
-                      userLocation = result[0].userLocation;
-                      resolved(contentIndexList);
-                      //conn.release(); //MySQL connection release
-                    }
-                  }
-              })
-            });
-          }
-      });
-    })
-  }, function(err){
-      console.log(err);
-  })
-
+  // .then(function(contentIndexList){
+  //   return new Promise(function getLocationFunc(resolved, rejected){
+  //     var key = req.params.userId;
+  //     redisPool.locationMemory.get(key, function getLocation(err, result) {
+  //         if(err){
+  //           error_log.info("fail to get user location from redis! : " + err);
+  //           error_log.info("key (req.params.userId) : " + key);
+  //           error_log.info();
+  //           rejected("fail to get user location from redis! ");
+  //         }
+  //         if(result){
+  //           userLocation = result;
+  //           resolved(contentIndexList);
+  //         } else {
+  //           dbPool.getConnection(function getUserLocation(err, conn) {
+  //             if(err) error_log.info("connection error = " + err);
+  //
+  //             var query_stmt = 'SELECT userLocation FROM user ' +
+  //                              'WHERE userId = ' + key;
+  //             conn.query(query_stmt, function (err, result) {
+  //                 conn.release(); //MySQL connection release
+  //                 if(err){
+  //                   error_log.info("fail to get user location from MySQL! : " + err);
+  //                   error_log.info("key (userId) : " + key + "\ㅜn");
+  //
+  //                   //conn.release(); //MySQL connection release
+  //                   rejected("fail to get user location from MySQL!");
+  //                 } else {
+  //                   if(result == undefined || result == null){
+  //                     error_log.info("fail to get user location from MySQL! : There is no result.");
+  //                     error_log.info("key (userId) : " + key + "\ㅜn");
+  //
+  //                     //conn.release(); //MySQL connection release
+  //                     rejected("fail to get user location from MySQL!");
+  //                   } else {
+  //                     userLocation = result[0].userLocation;
+  //                     resolved(contentIndexList);
+  //                     //conn.release(); //MySQL connection release
+  //                   }
+  //                 }
+  //             })
+  //           });
+  //         }
+  //     });
+  //   })
+  // }, function(err){
+  //     console.log(err);
+  // })
   .then(function(contentIndexList){
     return new Promise(function(resolved, rejected){
 
@@ -153,12 +152,12 @@ router.get('/:userId', function(req, res, next) {
       var readEndTime = 0;
 
       readStartTime = new Date().getTime();
-      getUserContentData = function(i, callback){
+      var getUserContentData = function(i, callback){
         if(i >= contentIndexList.length){
           callback();
         } else {
           var key = contentIndexList[i];
-          redisPool.dataMemory.get(key, function (err, result) {
+          redisPool.dataMemory.get(key, function getContentDataFromRedis(err, result) {
               if(err){
                 error_log.info("fail to push the content from data memory in redis! : " + err );
                 error_log.info("key (contentIndexList[" + i + "] = " + contentIndexList[i] + ") : " + key);
@@ -184,7 +183,6 @@ router.get('/:userId', function(req, res, next) {
                         error_log.info("fail to get message (MySQL) : " + err);
                         error_log.info("QUERY STMT : " + query_stmt);
                         error_log.info();
-                        //conn.release(); //MySQL connection release
                         rejected("DB err!");
                       }
                       else {
@@ -192,13 +190,11 @@ router.get('/:userId', function(req, res, next) {
                           contentDataList.push(result[0].message);
                           //console.log("cache miss!");
                           monitoring.cacheMiss++;
-                          //operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio());
 
                         } else {
                           error_log.error("There's no data, even in the origin mysql server! \n");
                         }
 
-                        //conn.release(); //MySQL connection release
                         getUserContentData(i+1, callback);
                       }
 
@@ -216,7 +212,6 @@ router.get('/:userId', function(req, res, next) {
         operation_log.info("[Read Operation Count]= " + ++monitoring.readCount);
         //operation_log.info("[Read Traffic]= " + (monitoring.readCount * (end-start+1)));
         operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio() + "\n");
-        //operation_log.info();
         resolved();
       })
     })
@@ -271,7 +266,7 @@ router.post('/:userId', function(req, res, next) {
   promise
   .then(function(friendList){
     return new Promise(function(resolved, rejected){
-      pushTweetInOriginDB = function(i, callback){
+      var pushTweetInOriginDB = function(i, callback){
         if(i >= friendList.length){
           callback();
         } else {
@@ -436,7 +431,7 @@ router.post('/:userId', function(req, res, next) {
   //5. tweetObjectList를 이용해서, 각 surrogate 서버 index 메모리에, 모든 친구들에 대해서 넣는다.
   .then(function(){
     return new Promise(function(resolved, rejected){
-      pushTweetInIndexMemory = function(i, callback){
+      var pushTweetInIndexMemory = function(i, callback){
         if(i >= tweetObjectList.length){
           callback();
         } else {
@@ -465,7 +460,7 @@ router.post('/:userId', function(req, res, next) {
   //6. tweetObjectList를 이용해서, 각 surrogate 서버 data 메모리에, 모든 친구들에 대해서 넣는다. 이때 메모리양 체크하면서 넣어야한다.
   .then(function(){
     return new Promise(function(resolved, rejected){
-      pushTweetInDataMemory = function(i, callback){
+      var pushTweetInDataMemory = function(i, callback){
         if(i >= tweetObjectList.length){
           callback();
         } else {
