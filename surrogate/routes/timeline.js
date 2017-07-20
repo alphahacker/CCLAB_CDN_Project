@@ -166,7 +166,7 @@ router.get('/:userId', function(req, res, next) {
               }
               if(result){
                 contentDataList.push(result);
-                //console.log("cache hit!");
+                console.log("cache hit!");
                 monitoring.cacheHit++;
                 getUserContentData(i+1, callback);
 
@@ -188,7 +188,7 @@ router.get('/:userId', function(req, res, next) {
                       else {
                         if(result){
                           contentDataList.push(result[0].message);
-                          //console.log("cache miss!");
+                          console.log("cache miss!");
                           monitoring.cacheMiss++;
 
                         } else {
@@ -203,7 +203,7 @@ router.get('/:userId', function(req, res, next) {
             }
           });
         }
-      }
+      };
 
       getUserContentData(0, function(){
         readEndTime = new Date().getTime();
@@ -214,6 +214,8 @@ router.get('/:userId', function(req, res, next) {
         operation_log.info("[Cache Hit]= " + monitoring.cacheHit + ", [Cache Miss]= " + monitoring.cacheMiss + ", [Cache Ratio]= " + monitoring.getCacheHitRatio() + "\n");
         resolved();
       })
+
+      getUserContentData = null;
     })
   }, function(err){
       console.log(err);
@@ -225,6 +227,9 @@ router.get('/:userId', function(req, res, next) {
         status : "OK",
         contents : contentDataList
       });
+
+      contentIndexList = null;
+      contentDataList = null;
     })
   }, function(err){
       console.log(err);
@@ -447,7 +452,7 @@ router.post('/:userId', function(req, res, next) {
               pushTweetInIndexMemory(i+1, callback);
           });
         }
-      }
+      };
 
       pushTweetInIndexMemory(0, function(){
         resolved();
@@ -483,6 +488,7 @@ router.post('/:userId', function(req, res, next) {
         operation_log.info("[Write Operation Count]= " + ++monitoring.writeCount + "\n");
         //operation_log.info("[Write Traffic]= " + (monitoring.writeCount * req.body.contentData.length) + "B");
         //operation_log.info();
+        tweetObjectList = null;
         resolved();
       })
     })
