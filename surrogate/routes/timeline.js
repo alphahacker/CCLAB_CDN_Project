@@ -60,7 +60,7 @@ router.get('/test2/:userId', function(req, res, next) {
 
 //Get heapdump
 router.get('/heapdump', function(req, res, next) {
-  var filename = '/heapdump' + Date.now() + './heapsnapshot';
+  var filename = '/heapdump/' + Date.now() + '.heapsnapshot';
   heapdump.writeSnapshot(filename);
   res.send('Heapdump has been generated in ' + filename);
 });
